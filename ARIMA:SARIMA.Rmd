@@ -1,0 +1,181 @@
+---
+title: "ARIMA/SARIMA"
+author: "Hritik"
+date: "2025-03-03"
+output: html_document
+---
+
+```{r}
+
+# Load required libraries
+library(tidyverse)
+library(lubridate)
+library(forecast)
+library(tseries)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(lmtest) 
+
+# Load dataset
+setwd("/Users/hritikjhaveri/Desktop/UChicago/Q2/Time_Series_Analysis_Forcasting/Final_Project")
+getwd()
+
+data <- read.csv("London_AQI_Daily.csv")
+
+# Convert 'Date' column to datetime format
+data$Date <- as.Date(data$Date)
+
+df <- data.frame(Date = data$Date, USAQI = data$USAQI)
+
+# View first few rows
+head(df)
+
+# Check data types
+str(df)
+
+# Check for missing values
+sum(is.na(df))
+
+# Summary stats for AQI
+summary(df$USAQI)
+
+```
+
+# 2. Visualize Time Series
+
+```{r}
+
+# Line plot
+ggplot(df, aes(x = Date, y = USAQI)) +
+  geom_line(color = "blue") +
+  labs(title = "AQI in London from 2014-2024", x = "Year", y = "AQI in London") +
+  theme_minimal()
+
+```
+
+# 3. Loading data into TS object
+
+```{r}
+
+# Decompose Time Series
+ts_data <- ts(df$USAQI)
+
+str(ts_data)
+
+```
+
+# 4. ADF Test
+
+```{r}
+
+# Augmented Dickey-Fuller (ADF) test
+adf.test(ts_data)
+
+```
+# 5. KPSS Test
+
+```{r}
+
+# Kwiatkowski-Phillips-Schmidt-Shin (KPSS) test
+kpss.test(ts_data)
+
+```
+
+# 6. Autocorrelation Function
+
+```{r}
+
+# ACF plots
+acf(ts_data)
+
+```
+
+# 7. Partial Autocorrelation Function
+
+```{r}
+
+# PACF plots
+pacf(ts_data)
+
+```
+# 8. Splitting data into training and testing sets
+
+```{r}
+
+# Find train indices
+train_start_index <- which(df$Date == as.Date("2014-01-01"))
+train_end_index <- which(df$Date == as.Date("2024-12-31"))
+
+# Extract train window using indices
+train_data <- window(ts_data, start = train_start_index, end = train_end_index)
+
+# Find test indices
+test_start_index <- which(df$Date == as.Date("2025-01-01"))
+test_end_index <- which(df$Date == as.Date("2025-02-28"))
+
+# Extract test window using indices
+test_data <- window(ts_data, start = test_start_index, end = test_end_index)
+
+```
+
+
+# 9. ARIMA Model
+
+```{r}
+
+# Fit ARIMA model
+arima_model <- auto.arima(train_data, seasonal = FALSE)
+
+# Summary of ARIMA model
+summary(arima_model)
+
+```
+
+```{r}
+
+# Forecast for test period
+forecast_values <- forecast(arima_model, h = length(test_data))
+
+# Plot actual vs forecast
+autoplot(forecast_values) + 
+  autolayer(test_data, series="Actual") + 
+  ggtitle("ARIMA Forecast vs Actual Data") + 
+  theme_minimal()
+
+```
+
+# 10. SARIMA Model
+
+```{r}
+
+# Fit SARIMA model
+sarima_model <- auto.arima(train_data, seasonal = TRUE)
+
+# Summary of SARIMA model
+summary(sarima_model)
+```
+
+```{r}
+# Forecast for test period
+forecast_values <- forecast(sarima_model, h = length(test_data))
+
+# Plot actual vs forecast
+autoplot(forecast_values) + 
+  autolayer(test_data, series="Actual") + 
+  ggtitle("SARIMA Forecast vs Actual Data") + 
+  theme_minimal()
+
+```
+
+
+```{r}
+
+checkresiduals(arima_model)
+checkresiduals(sarima_model)
+
+```
+
+## Conclusion
+
+ARIMA model is better since it has lower AIC and BIC values compared to SARIMA model. The residuals of ARIMA model are normally distributed and do not show any patterns, indicating that the model is a good fit for the data. The forecasted values are also closer to the actual values in the ARIMA model compared to the SARIMA model. Therefore, we can conclude that the ARIMA model is more suitable for forecasting AQI in London.
