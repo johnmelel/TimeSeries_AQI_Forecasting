@@ -147,7 +147,7 @@ plot(resids, main = "Residuals for Test Data", ylab = "Residuals", xlab = "Time"
 ```
 
 ```{r}
-rmse1 <- sqrt(mean(resids^2))
+rmse1 = sqrt(mean(resids^2))
 
 rmse1
 ```
@@ -186,7 +186,7 @@ plot(resids2, main = "Residuals for Test Data (Differenced)",
 ```
 
 ```{r}
-rmse2 <- sqrt(mean(resids2^2))
+rmse2 = sqrt(mean(resids2^2))
 
 rmse2
 ```
