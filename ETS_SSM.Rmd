@@ -1,0 +1,509 @@
+---
+title: "TS Exponential Smoothing (Holt Winters & ETS) model final project"
+author: "Anusha Bhat"
+date: "2025-03-06"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+# Data Loading
+
+```{r}
+library(readxl)
+library(forecast)
+library(tseries)
+library(dlm)
+```
+
+```{r}
+# Read in data
+aqi = read_excel("London_AQI_Daily.xlsx")
+
+head(aqi)
+```
+
+```{r}
+# Fix formatting 
+aqi$Date = as.Date(aqi$Date, format = "%Y-%m-%d")
+aqi$USAQI = as.integer(aqi$USAQI)
+```
+
+# EDA 
+
+```{r}
+plot(y = aqi$USAQI, x = aqi$Date, main = "Time Series of London AQI", type = "l",
+     ylab = "AQI", xlab = "Date")
+```
+
+Looks seasonal and fairly consistent over time.
+
+
+```{r}
+# Convert df to ts 
+aqi_ts = ts(aqi$USAQI, frequency = 365, start = c(2013, 1, 2))
+```
+
+```{r}
+acf(aqi_ts, main = "ACF of AQI")
+```
+
+```{r}
+pacf(aqi_ts, main = "PACF of AQI")
+```
+
+Lags have autocorrelation based on ACF but pacf shows limited autocorrelation when removing effect of short term lags.
+
+```{r}
+adf.test(aqi_ts)
+```
+
+```{r}
+kpss.test(aqi_ts)
+```
+
+ADF test shows it's stationary but KPSS shows it's not so it may have stochastic and deterministic trends. Can difference it by one to confirm stationarity.
+
+```{r}
+new_aqi = diff(aqi_ts)
+```
+
+```{r}
+adf.test(new_aqi)
+```
+
+```{r}
+kpss.test(new_aqi)
+```
+After differencing, both tests confirm stationarity.
+
+
+```{r}
+acf(new_aqi, main = "ACF After Differencing")
+```
+
+```{r}
+pacf(new_aqi, main= "PACF After Differencing")
+```
+
+There is still autocorrelation after differencing.
+
+```{r}
+decomp = stl(new_aqi, s.window = "periodic")
+plot(decomp, main = "Seasonal Decomposition")
+```
+
+There seems to be a decreasing but stable trend over time with seasonality. The overall trend is very small in value, however.
+
+# Train/Test Split: Test = 2025 data
+
+
+```{r}
+# Make train and test split 
+train = aqi[aqi$Date < as.Date("2025-01-01"), ]
+test = aqi[aqi$Date >= as.Date("2025-01-01"), ]
+
+# Check
+head(train)
+tail(train)
+head(test)
+tail(test)
+```
+
+
+```{r}
+# Convert to ts --> want 2: regular and differenced by 1
+train_ts = ts(train$USAQI, frequency = 365, start = c(2013, 1, 2))
+test_ts = ts(test$USAQI, frequency = 365, start = c(2025, 1, 1))
+
+diff_train_ts = diff(train_ts)
+diff_test_ts = diff(test_ts)
+```
+
+# ETS Model Construction 
+
+## ETS Model Assumptions 
+
+-- Time series can be broken down into three components: error, trend, and seasonality. The three components can be additive or multiplicative. This is satisfied through the ETS plot. 
+
+-- Explonential smoothing: recent observations are weighted more than previous ones (weights decay over time). This is satisfied since climate change affects AQI, allowing us to weight recent observations with more importance.
+
+-- Stationary Trend and Seasonality: these two should remain relatively stable. Trend change is gradual and for seasonality the pattern repeats at regular intervals. This is satistfied with the ETS plot. The seasonal change repeats frequently/regularly and the trend is very small and stable (hovers betwen 0.01 and 0.15 throughout).
+
+-- No structural breaks or sudden changes: This is satisfied since we removed NAs and filled in missing values. AQI is measured daily so it's continuous.
+
+
+-- IID Normal Errors with no autocorrelation: This is violated. They are autocorrelated and have heteroskedasticity. 
+
+## ETS Model With No Differencing
+
+
+```{r}
+ets_mod = ets(train_ts)
+summary(ets_mod)
+```
+```{r}
+for1 = forecast(ets_mod, h = 59)
+plot(for1, main = "Forecast for 2025", ylab = "AQI", xlab = "Date")
+```
+
+```{r}
+checkresiduals(ets_mod)
+```
+
+Residuals have autocorrelation
+
+```{r}
+adf.test(resids1)
+```
+
+
+```{r}
+for1_vals = for1$mean
+resids = test_ts - for1_vals
+
+plot(resids, main = "Residuals for Test Data", ylab = "Residuals", xlab = "Time")
+```
+
+```{r}
+adf.test(resids)
+```
+```{r}
+kpss.test(resids)
+```
+Based on both tests, the residuals are not stationary.
+
+```{r}
+plot(fitted(ets_mod), residuals(ets_mod), 
+     main="Residuals vs Fitted Values", 
+     xlab="Fitted Values", 
+     ylab="Residuals",
+     pch = 16)
+abline(h=0, col="red")
+```
+
+The residuals hover around 0 but seem to have heteroskedasticity.
+
+```{r}
+rmse1 = sqrt(mean(resids^2))
+
+cat("Test RMSE:", rmse1)
+```
+
+Test RMSE is 61.733
+
+
+```{r}
+print("Train RMSE")
+accuracy(ets_mod)
+```
+
+## ETS Model With Differencing
+
+```{r}
+ets_mod_diff = ets(diff_train_ts)
+summary(ets_mod_diff)
+```
+
+```{r}
+for2 = forecast(ets_mod_diff, h = 59)
+plot(for2, main = "Forecast for 2025 (Differenced)", ylab = "AQI", xlab = "Date")
+```
+
+```{r}
+checkresiduals(ets_mod_diff)
+```
+
+Residuals have autocorrelation
+
+
+```{r}
+for2_vals = for2$mean
+resids2 = test_ts - for2_vals
+
+plot(resids2, main = "Residuals for Test Data (Differenced)",
+     ylab = "Residuals", xlab = "Time")
+```
+
+```{r}
+plot(fitted(ets_mod_diff), residuals(ets_mod_diff), 
+     main="Residuals vs Fitted Values", 
+     xlab="Fitted Values", 
+     ylab="Residuals",
+     pch = 16)
+abline(h=0, col="red")
+```
+
+The residuals hover around mean 0 but they have heteroskedasticity.
+
+
+```{r}
+adf.test(resids2)
+```
+
+```{r}
+kpss.test(resids2)
+```
+Based on the adf test, the residuals are not stationary.
+
+
+```{r}
+rmse2 = sqrt(mean(resids2^2))
+
+cat("Test RMSE:", rmse2)
+```
+Test RMSE is 53.17281, lower than without differencing
+
+
+```{r}
+print("Train Accuracy")
+accuracy(ets_mod_diff)
+```
+RMSE on train is lower than RMSE without differencing.
+
+Differenced model performs better. 
+
+Note: the error assumption is violated so let's look for a different model.
+
+
+# Holt-Winters Model Construction
+
+3 main components: 
+-- level (smoothed value at time t)
+-- trend 
+-- seasonality 
+
+
+Assumptions (additive model)
+-- Additive seasonality: If the seasonal variations are roughly constant over time, the model assumes that the seasonal variations are added to the level and trend: satisfied with ETS plot (trend is relatively stable and consistent over time, we have a small to moderate trend which is typical for many real-world time series where the trend may not be very steep but still noticeable over time) --> domain knowledge == climate change causes trend but slow change over time, so this is fine.
+-- Additive trend (linear) and constant seasonality (additive) rather than changing over time: satisfied through ETS 
+-- Stationarity: satisfied with differencing 
+-- Exponential smoothing: satisfied
+-- IID errors: not satisfied
+
+
+## Holt Winters model (on differenced TS)
+
+```{r}
+hw_mod = HoltWinters(diff_train_ts, seasonal = "additive")
+summary(hw_mod)
+```
+```{r}
+for3 = forecast(hw_mod, h = 59)
+```
+
+```{r}
+plot(for3, main = "Forecast for 2025 HW")
+```
+
+```{r}
+plot(for3, main = "Forecast for 2025 HW",
+     xlim = c(2024, 2025))
+```
+
+
+
+```{r}
+plot(hw_mod$fitted[,1], residuals(hw_mod), 
+     main="Residuals vs Fitted Values", 
+     xlab="Fitted Values", 
+     ylab="Residuals",
+     pch = 16)
+abline(h=0, col="red")
+```
+
+```{r}
+checkresiduals(hw_mod)
+```
+
+
+```{r}
+# Q-Q plot to check normality
+qqnorm(residuals(hw_mod), main = "Q-Q Plot of Residuals")
+qqline(residuals(hw_mod), col = "red")
+```
+
+```{r}
+shapiro.test(residuals(hw_mod))
+```
+The errors are non-normal and are autocorrelated which slightly violates the assumptions of the model.
+
+
+```{r}
+resids3 = test_ts - hw_mod$fitted[, 1]
+
+rmse3 = sqrt(mean(resids3^2))
+
+cat("Test RMSE:", rmse3)
+```
+Test RMSE is 35.96325 which is lower than the ETS model.
+
+
+```{r}
+print("Train Accuracy")
+sqrt(mean(residuals(hw_mod)^2))
+```
+Train accuracy is 12.6 which is higher than the ETS model.
+
+
+# State Space Model Construction
+
+```{r}
+dlm_mod <- dlmModPoly(order = 1) + dlmModSeas(frequency = 10)
+
+# Fit the model
+fit_dlm <- dlmFilter(diff_train_ts, dlm_mod)
+```
+
+```{r}
+# Forecast 2025 and plot 
+forecast_dlm <- dlmForecast(fit_dlm, nAhead = 59)
+
+forecast_values <- forecast_dlm$f
+forecast_time_points <- (length(diff_train_ts) + 1):(length(diff_train_ts) + 59)  
+
+plot(forecast_time_points, forecast_values, 
+     type = "o", col = "blue", 
+     xlab = "Time", ylab = "Forecasted Value", 
+     main = "Forecast for Air Quality")
+
+lines(forecast_time_points, forecast_dlm$lower, col = "red", lty = 2)
+lines(forecast_time_points, forecast_dlm$upper, col = "red", lty = 2)
+```
+
+```{r}
+# Forecast plot with rest of ts  
+forecast_error_covariance <- forecast_dlm$R
+forecast_std_dev <- numeric(length(forecast_values))
+
+for (i in 1:length(forecast_error_covariance)) {
+  forecast_std_dev[i] <- sqrt(forecast_error_covariance[[i]][1, 1])  
+}
+
+
+# Compute the 95% confidence intervals (lower and upper bounds)
+forecast_lower <- forecast_values - 1.96 * forecast_std_dev
+forecast_upper <- forecast_values + 1.96 * forecast_std_dev
+
+forecast_time_points <- (length(train_ts) + 1):(length(train_ts) + 59)
+
+plot(1:length(diff_train_ts), diff_train_ts, type = "l", col = "blue", 
+     xlab = "Time", ylab = "Air Quality Index", 
+     main = "Air Quality Index with Forecast", 
+     xlim = c(1, length(diff_train_ts) + 59))
+
+lines(forecast_time_points, forecast_values, type = "o", col = "red")
+
+lines(forecast_time_points, forecast_lower, col = "red", lty = 2)
+lines(forecast_time_points, forecast_upper, col = "red", lty = 2)
+
+legend("topright", legend = c("Historical Data", "Forecasted Values", "95% Confidence Interval"),
+       col = c("blue", "red", "red"), lty = c(1, 1, 2), cex = 0.8)
+```
+
+```{r}
+plot(1:length(diff_train_ts), diff_train_ts, type = "l", col = "blue", 
+     xlab = "Time", ylab = "Air Quality Index", 
+     main = "Air Quality Index with Forecast", 
+     xlim = c(4300, length(train_ts) + 59))
+
+lines(forecast_time_points, forecast_values, type = "o", col = "red")
+
+lines(forecast_time_points, forecast_lower, col = "red", lty = 2)
+lines(forecast_time_points, forecast_upper, col = "red", lty = 2)
+
+legend("topright", legend = c("Historical Data", "Forecasted Values", "95% Confidence Interval"),
+       col = c("blue", "red", "red"), lty = c(1, 1, 2), cex = 0.8)
+```
+```{r}
+test_pred = forecast_dlm$f
+print("Test Accuracy")
+sqrt(mean((test_ts - test_pred)^2))
+```
+
+```{r}
+train_pred = fit_dlm$f
+print("Train Accuracy")
+sqrt(mean((test_ts - train_pred)^2))
+```
+Worst accuracy of all of the models.
+
+
+## State Space Models Assumptions 
+
+--Linearity: The relationship between the observed data and the underlying states is linear.
+
+--Stationary State Process: The underlying states evolve in a stationary manner over time.
+
+--Normality of Errors: The errors (measurement and state process errors) are normally distributed with zero mean and constant variance.
+
+--Uncorrelated Errors: The errors are independent and uncorrelated over time.
+
+--Markov Property: The current state depends only on the previous state (memoryless property).
+
+--Additive or Multiplicative Decomposition: The time series is decomposed into components (level, trend, seasonality) that are combined additively or multiplicatively. SATISTFIED 
+
+
+
+```{r}
+acf(residuals(fit_dlm)$res)
+```
+```{r}
+Box.test(residuals(fit_dlm)$res, lag = 7, type = "Ljung-Box")
+```
+
+# Justifications, Pros, and Cons of each model
+
+1. ETS:
+Justification:
+-- Suitable for data with trend and seasonality (without needing external regressors).
+-- Easy to implement for short-term forecasting.
+Pros:
+-- Flexibility: Can handle trend, seasonality, and level components separately.
+-- Simple and fast: Does not require heavy computational power.
+-- Works well for short-term forecasting.
+Cons:
+--No guarantee of capturing complex autocorrelation in residuals, especially with non-stationary data.
+-- Assumes independent and identically distributed (i.i.d.) errors which may not always hold 
+-- May struggle with irregular or complex seasonal patterns.
+
+
+2. Holt-Winters (Triple Exponential Smoothing)
+Justification:
+-- An extension of ETS that handles both trend and seasonality effectively.
+-- Often used when the series exhibits strong trend and seasonality.
+Pros:
+-- Explicitly models trend and seasonality: Useful for datasets with seasonal patterns.
+-- Easy to implement and interpret.
+-- Flexible for different types of seasonality (additive or multiplicative).
+Cons:
+-- Assumes no autocorrelation in residuals, which can be problematic for your air quality data.
+-- Less robust with abrupt changes or structural shifts in the data.
+-- May underperform for longer-term forecasting or complex seasonal patterns.
+
+
+3. State Space Models (SSM)
+Justification:
+-- Provides a flexible framework for modeling time series, especially when complex dependencies or dynamic changes are present.
+-- Can model trend, seasonality, and state dependence, and it works well for irregular seasonality.
+Pros:
+-- Handles autocorrelation better than ETS and Holt-Winters.
+-- Explicitly models state dynamics (e.g., trend, level, seasonality), allowing for richer modeling.
+-- Can account for irregularities and complex temporal structures.
+Cons:
+-- Computationally intensive
+-- Model complexity: Can be harder to interpret compared to simpler models like ETS or Holt-Winters.
+Requires a lot of data to achieve optimal parameter estimation.
+
+
+Summary:
+Holt-Winters had the best test accuracy and performs better than the general ETS model for exponential smoothing. State Space has too many assumptions that could potentially be violated. For the ETS models, checking residuals showed slight violation, however, the residuals only had slight heteroskedasticity as the distributions and QQ plots looked fine. Also, the autocorrelation tests most likely failed since there are huge autocorrelations at the very beginning of the data, since there aren't many closer in time, we can proceed with caution to fit the model. 
+
+
+
+
+
+
