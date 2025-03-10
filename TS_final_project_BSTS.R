@@ -33,7 +33,7 @@ aqi_test_ts  <- ts(test_data$USAQI, frequency = 365, start = c(2024, 12))
 
 adf.test(aqi_train_ts) # stationary
 
-# may have a deterministic trend since kpss test and adf test 
+# may have a deterministic trend since kpss test and adf test contradict eachother 
 # use AddLocalLinearTrend to model any residual trends
 
 
@@ -48,33 +48,38 @@ ss <- AddSeasonal(ss, y = train_data$USAQI, nseasons = 365, season.duration = 1)
 model <- bsts(aqi_train_ts, state.specification = ss, niter = 200)
 
 residuals_bsts <- residuals(model)
-print(residuals_bsts)
-
 summary(model)
 
 # plot residuals
 residuals_bsts <- as.numeric(residuals(model))  # flatten to a vector
 plot(residuals_bsts)
-acf(residuals_bsts[1:5000], lag.max = 50)  # demonstrates autocorrelation, needs differencing
+acf(residuals_bsts[1:5000])  # demonstrates autocorrelation, needs differencing
+
 # test for Heteroscedasticity
 bptest(lm(residuals_bsts ~ seq_along(residuals_bsts)))
 
 
-# difference data
+# difference the data
 aqi_train_ts_diff <- diff(aqi_train_ts, differences = 1)
+acf(aqi_train_ts_diff) # no auto-correlation 
 
-ss <- list()
-ss_diff <- AddLocalLinearTrend(ss, y = aqi_train_ts_diff)
-ss_diff <- AddSeasonal(ss, y = aqi_train_ts_diff, nseasons = 365, season.duration = 1)  # Yearly
 
+
+ss_diff <- list()
+ss_diff <- AddLocalLinearTrend(ss_diff, y = aqi_train_ts_diff)
+ss_diff <- AddSeasonal(ss_diff, y = aqi_train_ts_diff, nseasons = 7, season.duration = 1)   # weekly
+ss_diff <- AddSeasonal(ss_diff, y = aqi_train_ts_diff, nseasons = 30, season.duration = 1)  # monthly 
+ss_diff <- AddSeasonal(ss_diff, y = aqi_train_ts_diff, nseasons = 365, season.duration = 1)  # yearly
 
 # re-run on difference data
 model_diff <- bsts(aqi_train_ts_diff, state.specification = ss_diff, niter = 100)
 
+# plot residuals 
 residuals_bsts_diff <- residuals(model_diff)
-residuals_bsts_diff <- as.numeric(residuals(model_diff))  # flatten to a vector
-plot(residuals_bsts_diff[1:10000])
-acf(residuals_bsts_diff[1:5000], lag.max = 50)
+residuals_bsts_diff <- rowMeans(model_diff$one.step.prediction.errors, na.rm = TRUE)
+residuals_bsts_diff <- as.numeric(residuals(model_diff))
+plot(residuals_bsts_diff, main = "BSTS Residuals", ylab = "Residuals", xlab = "Time")
+acf(residuals_bsts_diff[1:5000])
 
 
 # forecast the next 31 days (December 2024)
