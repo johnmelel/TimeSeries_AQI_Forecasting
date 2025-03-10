@@ -1,0 +1,569 @@
+---
+title: "ARIMA/SARIMA"
+author: "Hritik"
+date: "2025-03-03"
+output: html_document
+---
+
+```{r}
+
+# Load required libraries
+library(tidyverse)
+library(lubridate)
+library(forecast)
+library(tseries)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(lmtest)
+library(FinTS)
+
+# Load dataset
+setwd("/Users/hritikjhaveri/Desktop/UChicago/Q2/Time_Series_Analysis_Forcasting/Final_Project")
+getwd()
+
+data <- read.csv("London_AQI_Daily.csv")
+
+# Convert 'Date' column to datetime format
+data$Date <- as.Date(data$Date)
+
+df <- data.frame(Date = data$Date, USAQI = data$USAQI)
+
+# View first few rows
+head(df)
+
+# Check data types
+str(df)
+
+# Check for missing values
+sum(is.na(df))
+
+# Summary stats for AQI
+summary(df$USAQI)
+
+```
+
+# 2. Visualize Time Series
+
+```{r}
+
+# Line plot
+ggplot(df, aes(x = Date, y = USAQI)) +
+  geom_line(color = "blue") +
+  labs(title = "AQI in London from 2013-2024", x = "Year", y = "AQI in London") +
+  theme_minimal()
+
+```
+
+# 3. Loading data into TS object
+
+```{r}
+
+# Decompose Time Series
+ts_data <- ts(df$USAQI)
+
+str(ts_data)
+
+```
+
+# 4. ADF Test
+
+```{r}
+
+# Augmented Dickey-Fuller (ADF) test
+adf.test(ts_data)
+
+```
+
+# 5. KPSS Test
+
+```{r}
+
+# Kwiatkowski-Phillips-Schmidt-Shin (KPSS) test
+kpss.test(ts_data)
+
+```
+
+# 6. Autocorrelation Function
+
+```{r}
+
+# ACF plots
+acf(ts_data)
+
+```
+
+# Observations from ACF: The ACF plot shows a slow decay, which is a sign of non-stationarity. There are no clear seasonal spikes, so it does not strongly indicate seasonality. The gradual decline suggests an AR or ARMA process rather than pure MA.
+
+# 7. Partial Autocorrelation Function
+
+```{r}
+
+# PACF plots
+pacf(ts_data)
+
+```
+
+#Observations from PACF: The PACF cuts off sharply after lag 1, meaning the series may follow an AR(1) process. There are no further significant spikes after lag 1, which supports an AR(1) model.
+
+```{r}
+
+# First order difference
+ts_data_diff <- diff(ts_data)
+
+print(adf.test(ts_data_diff))
+print(kpss.test(ts_data_diff))
+
+```
+
+```{r}
+
+acf(ts_data_diff)
+
+```
+
+```{r}
+
+pacf(ts_data_diff)
+
+```
+
+**p = 1 or 2, d = 1, q = 1**
+
+# 8. Splitting data into training and testing sets
+
+```{r}
+
+# Find train indices
+train_start_index <- which(df$Date == as.Date("2013-01-02"))
+train_end_index <- which(df$Date == as.Date("2024-12-31"))
+
+# Extract train window using indices
+diff_train_data <- window(ts_data_diff, start = train_start_index, end = train_end_index)
+
+# Find test indices
+test_start_index <- which(df$Date == as.Date("2025-01-01"))
+test_end_index <- which(df$Date == as.Date("2025-02-28"))
+
+# Extract test window using indices
+diff_test_data <- window(ts_data_diff, start = test_start_index, end = test_end_index)
+
+```
+
+```{r}
+
+# Extract train window using indices
+train_data <- window(ts_data, start = train_start_index, end = train_end_index)
+
+# Extract test window using indices
+test_data <- window(ts_data, start = test_start_index, end = test_end_index)
+
+```
+
+
+# 9.0 AUTO.ARIMA Model 
+
+```{r}
+
+arima_model <- auto.arima(train_data)
+
+summary(arima_model)
+
+```
+
+```{r}
+
+# Forecast for test period
+forecast_values <- forecast(arima_model, h = length(test_data))
+
+# Plot actual vs forecast
+autoplot(forecast_values) + 
+  autolayer(test_data, series="Actual") + 
+  ggtitle("ARIMA Forecast vs Actual Data") + 
+  theme_minimal()
+
+```
+
+```{r}
+
+# Ljung-Box Test for residual autocorrelation
+Box.test(arima_model$residuals, lag = 20, type = "Ljung-Box")
+
+```
+
+```{r}
+
+# Normality Tests
+shapiro_test <- shapiro.test(arima_model$residuals)
+print(shapiro_test)
+
+jarque_bera_test <- jarque.bera.test(arima_model$residuals)
+print(jarque_bera_test)
+
+checkresiduals(arima_model)
+
+```
+
+# 9.1 ARIMA Model (1,1,1)
+
+```{r}
+
+# Fit ARIMA model
+arima_model_1 <- Arima(diff_train_data, order = c(1, 1, 1), seasonal = FALSE)
+
+# Summary of ARIMA model
+summary(arima_model_1)
+
+```
+
+```{r}
+
+# Forecast for test period
+forecast_values <- forecast(arima_model_1, h = length(diff_test_data))
+
+# Plot actual vs forecast
+autoplot(forecast_values) + 
+  autolayer(diff_test_data, series="Actual") + 
+  ggtitle("ARIMA Forecast vs Actual Data") + 
+  theme_minimal()
+
+```
+
+```{r}
+
+# Ljung-Box Test for residual autocorrelation
+Box.test(arima_model_1$residuals, lag = 20, type = "Ljung-Box")
+
+```
+
+```{r}
+
+# Normality Tests
+shapiro_test <- shapiro.test(arima_model_1$residuals)
+print(shapiro_test)
+
+jarque_bera_test <- jarque.bera.test(arima_model_1$residuals)
+print(jarque_bera_test)
+
+checkresiduals(arima_model_1)
+
+```
+
+# 9.2 ARIMA Model (2,1,1)
+
+```{r}
+
+# Fit ARIMA model
+arima_model_2 <- Arima(diff_train_data, order = c(2, 1, 1), seasonal = FALSE)
+
+# Summary of ARIMA model
+summary(arima_model_2)
+
+```
+
+
+```{r}
+
+# Forecast for test period
+forecast_values <- forecast(arima_model_2, h = length(diff_test_data))
+
+# Plot actual vs forecast
+autoplot(forecast_values) + 
+  autolayer(diff_test_data, series="Actual") + 
+  ggtitle("ARIMA Forecast vs Actual Data") + 
+  theme_minimal()
+
+```
+
+```{r}
+
+# Ljung-Box Test for residual autocorrelation
+Box.test(arima_model_2$residuals, lag = 20, type = "Ljung-Box")
+
+```
+
+```{r}
+
+# Normality Tests
+shapiro_test <- shapiro.test(arima_model_2$residuals)
+print(shapiro_test)
+
+jarque_bera_test <- jarque.bera.test(arima_model_2$residuals)
+print(jarque_bera_test)
+
+checkresiduals(arima_model_2)
+
+```
+
+# 10.0 SARIMA Model
+
+```{r}
+
+# Fit SARIMA model
+sarima_model <- auto.arima(train_data, seasonal = TRUE)
+
+# Summary of SARIMA model
+summary(sarima_model)
+
+```
+
+```{r}
+
+# Forecast for test period
+forecast_values <- forecast(sarima_model, h = length(test_data))
+
+# Plot actual vs forecast
+autoplot(forecast_values) + 
+  autolayer(test_data, series="Actual") + 
+  ggtitle("ARIMA Forecast vs Actual Data") + 
+  theme_minimal()
+
+```
+
+```{r}
+
+# Ljung-Box Test for residual autocorrelation
+Box.test(sarima_model$residuals, lag = 20, type = "Ljung-Box")
+
+```
+
+```{r}
+
+# Normality Tests
+shapiro_test <- shapiro.test(sarima_model$residuals)
+print(shapiro_test)
+
+jarque_bera_test <- jarque.bera.test(sarima_model$residuals)
+print(jarque_bera_test)
+
+checkresiduals(sarima_model)
+
+```
+# 11
+
+```{r}
+
+# RMSE
+print('Arima')
+accuracy(arima_model)
+print('Arima_diff (1,1,1)')
+accuracy(arima_model_1)
+print('Arima_diff (2,1,1)')
+accuracy(arima_model_2)
+print('Sarima')
+accuracy(sarima_model)
+
+```
+
+```{r}
+
+# Perform ARCH test
+
+arch_test <- ArchTest(arima_model$residuals, lags = 20)
+print(arch_test)
+
+arch_test_1 <- ArchTest(arima_model_1$residuals, lags = 20)
+print(arch_test)
+
+arch_test_2 <- ArchTest(arima_model_1$residuals, lags = 20)
+print(arch_test)
+
+arch_test_3 <- ArchTest(sarima_model$residuals, lags = 20)
+print(arch_test)
+
+```
+
+# 12.0 AUTO.ARIMA Model log
+
+```{r}
+
+log_train_data <- log(train_data)
+log_test_data <- log(test_data)
+
+```
+
+```{r}
+
+arima_log_model <- auto.arima(log_train_data)
+
+summary(arima_log_model)
+
+```
+
+```{r}
+
+# Forecast for test period
+forecast_values <- forecast(arima_log_model, h = length(log_test_data))
+
+# Plot actual vs forecast
+autoplot(forecast_values) + 
+  autolayer(log_test_data, series="Actual") + 
+  ggtitle("ARIMA Forecast vs Actual Data") + 
+  theme_minimal()
+
+```
+
+```{r}
+
+# Ljung-Box Test for residual autocorrelation
+Box.test(arima_log_model$residuals, lag = 20, type = "Ljung-Box")
+
+```
+
+```{r}
+
+# Normality Tests
+shapiro_test <- shapiro.test(arima_log_model$residuals)
+print(shapiro_test)
+
+jarque_bera_test <- jarque.bera.test(arima_log_model$residuals)
+print(jarque_bera_test)
+
+checkresiduals(arima_log_model)
+
+```
+
+# 12.1 SARIMA Model
+
+```{r}
+
+# Fit SARIMA model
+sarima_log_model <- auto.arima(log_train_data, seasonal = TRUE)
+
+# Summary of SARIMA model
+summary(sarima_log_model)
+
+```
+
+```{r}
+
+# Forecast for test period
+forecast_values <- forecast(sarima_log_model, h = length(log_test_data))
+
+# Plot actual vs forecast
+autoplot(forecast_values) + 
+  autolayer(log_test_data, series="Actual") + 
+  ggtitle("ARIMA Forecast vs Actual Data") + 
+  theme_minimal()
+
+```
+
+```{r}
+
+# Ljung-Box Test for residual autocorrelation
+Box.test(sarima_log_model$residuals, lag = 20, type = "Ljung-Box")
+
+```
+
+```{r}
+
+# Normality Tests
+shapiro_test <- shapiro.test(sarima_log_model$residuals)
+print(shapiro_test)
+
+jarque_bera_test <- jarque.bera.test(sarima_log_model$residuals)
+print(jarque_bera_test)
+
+checkresiduals(sarima_log_model)
+
+```
+# 13.0 AUTO.ARIMA Model BC
+
+```{r}
+
+# Apply Box-Cox Transformation (automatic lambda selection)
+lambda <- BoxCox.lambda(train_data)  # Find optimal lambda
+bc_train_data <- BoxCox(train_data, lambda)
+
+lambda <- BoxCox.lambda(test_data)  # Find optimal lambda
+bc_test_data <- BoxCox(test_data, lambda) 
+
+```
+
+```{r}
+
+arima_bc_model <- auto.arima(bc_train_data)
+
+summary(arima_bc_model)
+
+```
+
+```{r}
+
+# Forecast for test period
+forecast_values <- forecast(arima_bc_model, h = length(bc_test_data))
+
+# Plot actual vs forecast
+autoplot(forecast_values) + 
+  autolayer(bc_test_data, series="Actual") + 
+  ggtitle("ARIMA Forecast vs Actual Data") + 
+  theme_minimal()
+
+```
+
+```{r}
+
+# Ljung-Box Test for residual autocorrelation
+Box.test(arima_bc_model$residuals, lag = 20, type = "Ljung-Box")
+
+```
+
+```{r}
+
+# Normality Tests
+shapiro_test <- shapiro.test(arima_bc_model$residuals)
+print(shapiro_test)
+
+jarque_bera_test <- jarque.bera.test(arima_bc_model$residuals)
+print(jarque_bera_test)
+
+checkresiduals(arima_bc_model)
+
+```
+
+
+
+# 13.1 SARIMA Model BC
+
+```{r}
+
+# Fit SARIMA model
+sarima_bc_model <- auto.arima(bc_train_data, seasonal = TRUE)
+
+# Summary of SARIMA model
+summary(sarima_bc_model)
+
+```
+
+```{r}
+
+# Forecast for test period
+forecast_values <- forecast(sarima_bc_model, h = length(bc_test_data))
+
+# Plot actual vs forecast
+autoplot(forecast_values) + 
+  autolayer(bc_test_data, series="Actual") + 
+  ggtitle("ARIMA Forecast vs Actual Data") + 
+  theme_minimal()
+
+```
+
+```{r}
+
+# Ljung-Box Test for residual autocorrelation
+Box.test(sarima_bc_model$residuals, lag = 20, type = "Ljung-Box")
+
+```
+
+```{r}
+
+# Normality Tests
+shapiro_test <- shapiro.test(sarima_bc_model$residuals)
+print(shapiro_test)
+
+jarque_bera_test <- jarque.bera.test(sarima_bc_model$residuals)
+print(jarque_bera_test)
+
+checkresiduals(sarima_bc_model)
+
+```

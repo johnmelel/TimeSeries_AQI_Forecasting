@@ -1,0 +1,30 @@
+```{r}
+# Load the data
+data <- read.csv("London_AQI_Daily.csv")
+head(data)
+```
+
+```{r}
+# Check the structure of the data
+summary(data$USAQI)
+```
+
+```{r}
+#conduct outlier detection
+boxplot(data$USAQI)
+```
+
+
+```{r}
+hist(data$USAQI,
+  xlab = "USAQI",
+  main = "Histogram of USAQI",
+  breaks = sqrt(length(data$USAQI)) # set number of bins
+)
+```
+
+
+```{r}
+qqnorm(data$USAQI, main = "QQ Plot of USAQI")
+qqline(data$USAQI, col = "blue")
+```
