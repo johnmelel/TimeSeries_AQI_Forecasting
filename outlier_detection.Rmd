@@ -9,6 +9,7 @@ head(data)
 summary(data$USAQI)
 ```
 
+
 ```{r}
 #conduct outlier detection
 boxplot(data$USAQI)
