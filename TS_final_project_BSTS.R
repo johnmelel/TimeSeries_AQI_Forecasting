@@ -169,6 +169,8 @@ seasonal_test <- diff(aqi_test_ts, lag = 365)
 
 #######   START BSTS MODELING   #######   
 
+# check cores for parallel processing 
+detectCores()
 
 #####  Differenced BSTS model  #####
 
@@ -180,7 +182,7 @@ ss_diff <- AddSeasonal(ss_diff, y = diff_train, nseasons = 365, season.duration 
 
 # run model with parallel processing to fix crashing 
 options(mc.cores = parallel::detectCores() - 4) # use 10 cores
-model_diff <- bsts(diff_train, state.specification = ss_diff, niter = 1000, ping = 0)
+model_diff <- bsts(diff_train, state.specification = ss_diff, niter = 1000, ping = 100)
 
 checkresiduals(model_diff)
 
@@ -223,7 +225,8 @@ ss_diff_ar <- AddSeasonal(ss_diff_ar, y = diff_train, nseasons = 30, season.dura
 ss_diff_ar <- AddSeasonal(ss_diff_ar, y = diff_train, nseasons = 365, season.duration = 1)  # yearly
 
 # run model
-model_diff_ar <- bsts(diff_train, state.specification = ss_diff_ar, niter = 1000)
+options(mc.cores = parallel::detectCores() - 4) # use 10 cores
+model_diff_ar <- bsts(diff_train, state.specification = ss_diff_ar, niter = 1000, ping = 100)
 
 checkresiduals(model_diff_ar)
 
@@ -266,7 +269,7 @@ ss_bc <- AddSeasonal(ss_bc, y = diff_boxcox_train, nseasons = 365, season.durati
 
 # run model with parallel processing to fix crashing 
 options(mc.cores = parallel::detectCores() - 4) # use 10 cores
-model_bc <- bsts(diff_boxcox_train, state.specification = ss_bc, niter = 1000, ping = 0)
+model_bc <- bsts(diff_boxcox_train, state.specification = ss_bc, niter = 1000, ping = 100)
 
 checkresiduals(model_bc)
 
@@ -310,7 +313,7 @@ ss_bc_ar <- AddSeasonal(ss_bc_ar, y = diff_boxcox_train, nseasons = 365, season.
 
 # run model with parallel processing to fix crashing 
 options(mc.cores = parallel::detectCores() - 4) # use 10 cores
-model_bc_ar <- bsts(diff_boxcox_train, state.specification = ss_bc_ar, niter = 1000, ping = 0)
+model_bc_ar <- bsts(diff_boxcox_train, state.specification = ss_bc_ar, niter = 1000, ping = 100)
 
 checkresiduals(model_bc_ar)
 
@@ -353,7 +356,7 @@ ss_season <- AddSeasonal(ss_season, y = seasonal_train, nseasons = 365, season.d
 
 # run model with parallel processing to fix crashing 
 options(mc.cores = parallel::detectCores() - 4) # use 10 cores
-model_season <- bsts(seasonal_train, state.specification = ss_season, niter = 1000, ping = 0)
+model_season <- bsts(seasonal_train, state.specification = ss_season, niter = 1000, ping = 100)
 
 checkresiduals(model_season)
 
@@ -397,7 +400,7 @@ ss_season_ar <- AddSeasonal(ss_season_ar, y = seasonal_train, nseasons = 365, se
 
 # run model with parallel processing to fix crashing 
 options(mc.cores = parallel::detectCores() - 4) # use 10 cores
-model_season_ar <- bsts(seasonal_train, state.specification = ss_season_ar, niter = 1000, ping = 0)
+model_season_ar <- bsts(seasonal_train, state.specification = ss_season_ar, niter = 1000, ping = 100)
 
 checkresiduals(model_season_ar)
 
