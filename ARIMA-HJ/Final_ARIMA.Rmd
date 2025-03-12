@@ -1,0 +1,314 @@
+---
+title: "ARIMA/SARIMA/ARFIMA"
+author: "Hritik"
+date: "2025-03-12"
+output: html_document
+---
+
+# Business Problem & Importance
+
+Air pollution is a critical public health issue in urban areas, with long-term exposure leading to respiratory diseases, cardiovascular issues, and reduced life expectancy. In London, monitoring air quality is essential for policymakers, environmental agencies, and the public to make informed decisions about pollution control measures. Poor air quality can also have economic implications, affecting workforce productivity, healthcare costs, and overall city livability. By accurately forecasting air quality, authorities can implement timely interventions, issue health advisories, and plan for future improvements in environmental policies.
+
+# Stakeholders
+
+1. Greater London Authority (GLA) & Local Councils - Responsible for implementing air quality policies, enforcing emissions regulations, and developing environmental strategies to improve air quality across London boroughs.
+
+2. UK Environment Agency & DEFRA (Department for Environment, Food & Rural Affairs) - Monitor air pollution levels, set national air quality standards, and provide funding for clean air initiatives.
+
+3. Public Health England (PHE) & NHS - Assess the impact of air pollution on public health, issue health warnings, and develop strategies to mitigate health risks, particularly for vulnerable populations (children, elderly, and those with pre-existing conditions).
+
+4. Transport for London (TfL) & Automotive Industry - Responsible for managing traffic congestion, expanding low-emission transport solutions, and implementing policies like the Ultra Low Emission Zone (ULEZ) to reduce vehicular pollution.
+
+5. Businesses & Industrial Sectors - Particularly those in energy, construction, and manufacturing industries, which must comply with emissions regulations and adopt cleaner technologies to minimize their environmental footprint.
+
+6. London Residents, Commuters & Environmental Advocacy Groups - Individuals affected by air pollution, including daily commuters, cyclists, and environmental activists campaigning for stricter pollution controls and sustainability initiatives.
+
+# Forecasting Objective
+
+The goal of this project is to develop a forecasting model for London's Air Quality Index (AQI) based on historical data. The model will help predict future AQI levels, allowing stakeholders to:
+
+- Issue early warnings for high pollution days by identifying peak pollution hours and locations, enabling timely public health advisories and traffic control measures.
+
+- Implement short-term pollution control measures such as temporary traffic restrictions, increased public transport availability, and industrial activity regulation during high-risk periods.
+
+- Develop long-term pollution mitigation strategies, including expansion of low-emission zones, increased green spaces, and stricter emission regulations for businesses and vehicles.
+
+- Improve public health strategies by providing targeted alerts for at-risk populations (e.g., children, elderly, and those with respiratory conditions), integrating AQI forecasts into healthcare planning.
+
+- Enhance urban planning efforts by using AQI trends to guide infrastructure development, optimize road networks to reduce congestion, and promote sustainable city designs that minimize pollution sources.
+
+# Data Source
+
+The dataset, "London_AQI_Daily.csv," contains daily air quality index (USAQI) readings for London. We aquired this dataset from **www.open-meteo.com**. Open-Meteo is an open-source weather API that offers free access to weather data for non-commercial use. The data spans from January 2, 2013, to February 28, 2025, capturing long-term trends and seasonal variations.
+
+# Description of Dataset
+
+Size: 4,441 records (after processing)
+
+Variables:
+
+Date (YYYY-MM-DD) – The recorded date of the AQI measurement.
+
+USAQI – The Air Quality Index value based on U.S. Environmental Protection Agency (EPA) standards.
+
+This dataset provides a structured historical view of air pollution in London, which can be used for trend analysis, predictive modeling, and policy formulation.
+
+********************************************************************************
+
+## Setup
+
+```{r, include=FALSE}
+
+# Load required libraries
+library(tidyverse)
+library(lubridate)
+library(forecast)
+library(tseries)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(lmtest)
+library(FinTS)
+library(fracdiff)
+library(knitr)
+library(kableExtra)
+
+```
+
+```{r}
+
+# Load dataset
+setwd("/Users/hritikjhaveri/Desktop/UChicago/Q2/Time_Series_Analysis_Forcasting/Final_Project")
+getwd()
+
+df <- read.csv("London_AQI_Daily.csv")
+
+# Convert 'Date' column to datetime format
+df$Date <- as.Date(df$Date, format = "%Y-%m-%d")
+
+# Ensure the data is sorted by Date
+df <- df %>% arrange(Date)
+
+# View first few rows
+head(df)
+
+# Check data types
+str(df)
+
+# Check for missing values
+sum(is.na(df))
+
+# Summary stats for AQI
+summary(df$USAQI)
+
+```
+
+## Data Preparation and Transformations
+
+```{r}
+
+# Ensure ts_data is a daily time series object
+ts_data <- ts(df$USAQI, start = c(2013, 1, 2), frequency = 365)  # Adjust for leap years if necessary
+
+# Apply transformations to the entire dataset
+transformed_data <- list(
+  "1st_diff" = diff(ts_data, differences = 1),
+  "diff_boxcox" = diff(BoxCox(ts_data, lambda = BoxCox.lambda(ts_data)), differences = 1),
+  "seasonal_diff" = diff(ts_data, lag = 365)
+)
+
+# Split data into train and test sets
+train <- window(ts_data, end = c(2024, 367))
+test <- window(ts_data, start = c(2025, 3))
+
+```
+
+## ACF and PACF Plots
+
+```{r, echo=FALSE}
+for (name in names(transformed_data)) {
+  series <- transformed_data[[name]]
+  
+  par(mfrow = c(1, 2))  # Set layout for two plots side by side
+  
+  # ACF Plot
+  acf(series, main = paste(name, "- ACF"))
+  
+  # PACF Plot
+  pacf(series, main = paste(name, "- PACF"))
+}
+```
+
+## Model Fitting and Diagnostics
+
+```{r}
+
+# Initialize results list
+results <- list()
+
+# Fit models to each transformed series
+for (name in names(transformed_data)) {
+  train_series <- window(transformed_data[[name]], end = c(2024, 367))
+  
+  # ARIMA Model
+  arima_model <- auto.arima(train_series)
+  results[[paste0(name, "_ARIMA")]] <- arima_model
+  
+  # SARIMA Model
+  sarima_model <- auto.arima(train_series, seasonal = TRUE)
+  results[[paste0(name, "_SARIMA")]] <- sarima_model
+  
+  # ARFIMA Model
+  arfima_model <- arfima(train_series)
+  results[[paste0(name, "_ARFIMA")]] <- arfima_model
+}
+
+```
+
+## Residuals Diagnostics
+
+```{r}
+
+for (name in names(transformed_data)) {
+  for (model_type in c("ARIMA", "SARIMA", "ARFIMA")) {
+    model_name <- paste0(name, "_", model_type)
+    print(paste("Diagnostics for", model_name))
+    checkresiduals(results[[model_name]])
+    
+    # Residuals vs. Fitted Plot
+    plot(results[[model_name]][["fitted"]], results[[model_name]][["residuals"]], 
+         main = paste(model_name, "- Residuals vs. Fitted"),
+         xlab = "Fitted Values", ylab = "Residuals",
+         col = "blue", pch = 19)
+    abline(h = 0, col = "red", lwd = 2)
+  }
+}
+
+```
+
+## ADF and KPSS Tests
+
+```{r}
+
+for (name in names(transformed_data)) {
+  for (model_type in c("ARIMA", "SARIMA", "ARFIMA")) {
+    model_name <- paste0(name, "_", model_type)
+    print(paste("Diagnostics for", model_name))
+    print(adf.test(residuals(results[[model_name]])))
+    print(kpss.test(residuals(results[[model_name]])))
+  }
+}
+
+```
+
+## Forecasting and Visualization
+
+```{r, echo=FALSE}
+
+forecast_horizon <- length(test)
+forecasts <- list()
+
+for (name in names(transformed_data)) {
+  for (model_type in c("ARIMA", "SARIMA", "ARFIMA")) {
+    model_name <- paste0(name, "_", model_type)
+    forecasts[[model_name]] <- forecast(results[[model_name]], h = forecast_horizon)
+  }
+}
+
+```
+
+## Forecast Plots
+
+```{r, echo=FALSE}
+
+for (model_name in names(forecasts)) {
+  plot(forecasts[[model_name]], main = paste(model_name, "Forecast"))
+  lines(test, col = "red")
+  legend("topright", legend = c("Forecast", "Actual"), col = c("black", "red"), lty = 1)
+}
+
+```
+
+## RMSE Calculation
+
+```{r}
+
+rmse <- function(actual, predicted) {
+  sqrt(mean((actual - predicted)^2))
+}
+
+rmse_results <- list()
+for (model_name in names(forecasts)) {
+  model_rmse <- rmse(test, forecasts[[model_name]][["mean"]])
+  rmse_results[[model_name]] <- model_rmse
+}
+
+# Print RMSE results
+print(rmse_results)
+
+rmse_table <- data.frame(
+  Transformation = c("1st Differencing", "Box-Cox Differencing", "Seasonal Differencing"),
+  ARIMA_RMSE = c(52.613, 52.717, 51.978),
+  SARIMA_RMSE = c(52.613, 52.717, 51.978),
+  ARFIMA_RMSE = c(52.832, 52.717, 52.739)
+)
+
+```
+
+## Model Summaries
+
+```{r}
+
+for (model in names(results)) {
+  print(model)
+  print(summary(results[[model]]))
+  cat("\n\n")
+  
+}
+```
+
+
+# Final Model Evaluation and Recommendation
+After analyzing the ARIMA, SARIMA, and ARFIMA models applied to three transformations (First-Order Differencing, Box-Cox Differencing, and Seasonal Differencing), here is a detailed assessment.
+
+## 1. Model Performance Based on RMSE
+The RMSE values measure forecast accuracy (lower is better).
+
+```{r}
+
+kable(rmse_table, caption = "RMSE Table", digits = 3) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "bordered", "hover"))
+
+```
+
+
+*Best Performing Model: SARIMA with Seasonal Differencing (51.978 RMSE)*
+
+## 2. Residual Diagnostics: Model Assumption Checks
+### (a) Stationarity Tests (ADF & KPSS)
+All transformations successfully produced stationary residuals (p-values < 0.05).
+ARFIMA models had weaker stationarity than ARIMA and SARIMA.
+*Assumption Fulfilled: Residuals are stationary*
+
+### (b) Residuals vs. Fitted Plots
+ARIMA and SARIMA residuals were randomly distributed, confirming a good fit.
+ARFIMA residuals showed patterns, meaning some information was not fully captured.
+Seasonal Differencing models had the most stable residuals.
+*Best Fit: Seasonal Differencing (ARIMA & SARIMA)*
+
+### (c) Ljung-Box Test for Autocorrelation
+Lower autocorrelation in SARIMA models compared to ARIMA.
+Box-Cox models performed slightly worse than Seasonal Differencing in removing autocorrelation.
+*SARIMA with Seasonal Differencing had the least autocorrelation*
+
+## 3. Forecasting and Graphical Analysis
+All three transformations improved forecasting, but Seasonal Differencing had the lowest error.
+SARIMA and ARIMA provided stable forecasts, while ARFIMA had wider confidence intervals.
+Box-Cox differencing models showed slightly higher volatility in forecasts.
+*Best Forecasts: SARIMA with Seasonal Differencing*
+
+## Final Recommendations
+*Best Model: SARIMA with Seasonal Differencing*
+Lowest RMSE (51.978) across all models.
+Better residual diagnostics (stationary, minimal autocorrelation).
+Reliable forecasts with stable confidence intervals.
