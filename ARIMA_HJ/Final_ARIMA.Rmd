@@ -78,11 +78,11 @@ library(kableExtra)
 ```{r}
 
 # Load dataset
-setwd("/Users/hritikjhaveri/Desktop/UChicago/Q2/Time_Series_Analysis_Forcasting/Final_Project")
-getwd()
+#setwd("/Users/hritikjhaveri/Desktop/UChicago/Q2/Time_Series_Analysis_Forcasting/Final_Project")
+#getwd()
 
-df <- read.csv("London_AQI_Daily.csv")
-
+#df <- read.csv("London_AQI_Daily.csv")
+df <- read.csv("../Data/London_AQI_Daily.csv")
 # Convert 'Date' column to datetime format
 df$Date <- as.Date(df$Date, format = "%Y-%m-%d")
 
@@ -174,9 +174,9 @@ for (name in names(transformed_data)) {
     model_name <- paste0(name, "_", model_type)
     print(paste("Diagnostics for", model_name))
     checkresiduals(results[[model_name]])
-    
+
     # Residuals vs. Fitted Plot
-    plot(results[[model_name]][["fitted"]], results[[model_name]][["residuals"]], 
+    plot(results[[model_name]][["fitted"]], results[[model_name]][["residuals"]],
          main = paste(model_name, "- Residuals vs. Fitted"),
          xlab = "Fitted Values", ylab = "Residuals",
          col = "blue", pch = 19)
@@ -228,11 +228,85 @@ for (model_name in names(forecasts)) {
 }
 
 ```
+```{r}
+for (model_name in names(forecasts)) {
+  print(model_name)
+}
+```
+
+```{r}
+# reverse differencing and box-cox 
+#lambda_value = BoxCox.lambda(aqi_train_ts)
+#forecast_values_bc = cumsum(c(tail(train_data$USAQI, 1), dbc_for$mean))[-1]
+# forecast_values_real <- inv_boxcox(forecast_values_bc, lambda = lambda_value)
+# have to shift values to ensure positive values since some values in (forecast_values_bc * lambda_value + 1) are negative, causing the exponentiation to fail. 
+#forecast_values_bc = ((forecast_values_bc - min(forecast_values_bc) + 1) * lambda_value + 1)^(1/lambda_value)
+
+#forecast_values_season = cumsum(c(tail(train_data$USAQI, 365), ds_for$mean))[-(1:365)]
+
+```
+
+```{r}
+#length(forecasts[['seasonal_diff_SARIMA']]$mean)
+```
+
+
+
+```{r}
+# Function to reverse 1st differencing
+reverse_diff <- function(predicted, original) {
+  cumsum(c(original[length(original)], predicted))[-1]
+}
+
+# Function to reverse Box-Cox differencing
+reverse_diff_boxcox <- function(predicted, original, lambda) {
+  inv_boxcox <- function(x, lambda) {
+    if (lambda == 0) {
+      exp(x)
+    } else {
+      (lambda * (x - min(x) + 1) + 1)^(1 / lambda)
+    }
+  }
+  cumsum(c(original[length(original)], predicted))[-1] %>% inv_boxcox(lambda)
+}
+
+# Function to reverse seasonal differencing
+reverse_seasonal_diff <- function(predicted, original) {
+  return(original[(length(original) - 365 + 1):(length(original) - 365 + 59)] + predicted)
+}
+
+
+# Undo differencing for each forecast
+for (name in names(forecasts)) {
+  if (grepl("1st_diff", name)) {
+    forecasts[[name]]$mean <- reverse_diff(forecasts[[name]]$mean, ts_data)
+  } else if (grepl("diff_boxcox", name)) {
+    lambda <- BoxCox.lambda(ts_data)
+    forecasts[[name]]$mean <- reverse_diff_boxcox(forecasts[[name]]$mean, ts_data, lambda)
+  } else if (grepl("seasonal_diff", name)) {
+    forecasts[[name]]$mean <- reverse_seasonal_diff(forecasts[[name]]$mean, ts_data)
+  }
+}
+
+# Calculate RMSE with undifferenced forecasts
+rmse_results <- list()
+for (model_name in names(forecasts)) {
+  model_rmse <- rmse(test, forecasts[[model_name]][["mean"]])
+  rmse_results[[model_name]] <- model_rmse
+}
+
+# Print RMSE results
+print(rmse_results)
+```
+
+
+
+
+
 
 ## RMSE Calculation
 
 ```{r}
-
 rmse <- function(actual, predicted) {
   sqrt(mean((actual - predicted)^2))
 }
@@ -242,7 +316,10 @@ for (model_name in names(forecasts)) {
   model_rmse <- rmse(test, forecasts[[model_name]][["mean"]])
   rmse_results[[model_name]] <- model_rmse
 }
+```
 
+
+```{r}
 # Print RMSE results
 print(rmse_results)
 
@@ -263,7 +340,7 @@ for (model in names(results)) {
   print(model)
   print(summary(results[[model]]))
   cat("\n\n")
-  
+
 }
 ```
 
@@ -278,7 +355,6 @@ The RMSE values measure forecast accuracy (lower is better).
 
 kable(rmse_table, caption = "RMSE Table", digits = 3) %>%
   kable_styling(full_width = FALSE, bootstrap_options = c("striped", "bordered", "hover"))
-
 ```
 
 
