@@ -335,7 +335,6 @@ acf(residuals_bsts_bc_ar[1:5000])
 
 # forecast the next 59 days (Jan 2025 - Feb 2025)
 burn_bc_ar <- SuggestBurn(0.1, model_bc_ar)
-
 pred_bc_ar <- predict(model_bc_ar, burn = burn_bc_ar, horizon = 59)
 
 
