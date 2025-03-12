@@ -1,0 +1,76 @@
+```{r}
+# Load necessary libraries
+library(tidyverse)
+library(lubridate)
+library(ggplot2)
+library(forecast)
+library(tseries)
+```
+
+
+```{r}
+dailyaqi <- read_csv("../Data/London_AQI_Daily.csv")
+dailyaqi$Date <- as.Date(dailyaqi$Date, format = "%Y-%m-%d")
+```
+
+```{r}
+# Plot the AQI data
+ggplot(dailyaqi, aes(x=Date, y=USAQI)) +
+    geom_line() +
+    labs(title="AQI Over Time", x="Date", y="AQI")
+```
+
+
+```{r}
+# examine trends and autocorrelation
+acf(dailyaqi$USAQI)
+pacf(dailyaqi$USAQI)
+
+# check for stationarity
+adf.test(dailyaqi$USAQI)
+kpss.test(dailyaqi$USAQI)
+```
+
+
+```{r}
+# Seasonal decomposition of time series
+decomposed <- stl(ts(dailyaqi$USAQI, frequency = 365), s.window = "periodic")
+
+# Plot the decomposed components
+plot(decomposed)
+```
+
+
+```{r}
+# test for stationarity
+adf.test(aqi_ts)  # stationary
+kpss.test(aqi_ts) # stationary
+```
+
+
+```{r}
+diff_aqi <- diff(aqi_ts, differences = 1)
+
+# test again for stationarity
+adf.test(diff_aqi)  # stationary
+kpss.test(diff_aqi) # stationary
+```
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+```{r}
+```
+
