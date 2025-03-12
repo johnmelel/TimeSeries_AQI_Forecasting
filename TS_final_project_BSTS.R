@@ -334,19 +334,25 @@ acf(residuals_bsts_bc_ar[1:5000])
 
 
 # forecast the next 59 days (Jan 2025 - Feb 2025)
-pred_bc_ar <- predict(model_bc_ar, horizon = 59)
+burn_bc_ar <- SuggestBurn(0.1, model_bc_ar)
+
+pred_bc_ar <- predict(model_bc_ar, burn = burn_bc_ar, horizon = 59)
 
 
 # Accuracy metrics 
 actual_values <- test_data$USAQI
 
 # reverse differencing and box-cox 
-forecast_values_bc_ar <- cumsum(c(tail(train_data$USAQI, 1), pred_bc_ar$mean))[-1] 
-forecast_values_real_ar <- inv_boxcox(forecast_values_bc_ar, lambda = (BoxCox.lambda(aqi_train_ts)))
+lambda_value <- BoxCox.lambda(aqi_train_ts)
+forecast_values_bc_ar <- cumsum(c(tail(train_data$USAQI, 1), pred_bc_ar$mean))[-1]
+# have to shift values to ensure positive values since some values in (forecast_values_bc * lambda_value + 1) are negative, causing the exponentiation to fail. 
+forecast_values_realar <- ((forecast_values_bc_ar - min(forecast_values_bc_ar) + 1) * lambda_value + 1)^(1/lambda_value)
 
-rmse <- sqrt(mean((actual_values - forecast_values_real_ar)^2))
-mae  <- mean(abs(actual_values - forecast_values_real_ar))
-mape <- mean(abs((actual_values - forecast_values_real_ar) / actual_values)) * 100
+# forecast_values_real_ar <- inv_boxcox(forecast_values_bc_ar, lambda = (BoxCox.lambda(aqi_train_ts)))
+
+rmse <- sqrt(mean((actual_values - forecast_values_realar)^2))
+mae  <- mean(abs(actual_values - forecast_values_realar))
+mape <- mean(abs((actual_values - forecast_values_realar) / actual_values)) * 100
 
 cat("RMSE for BC AR(2):", rmse, "\n")
 cat("MAE for BC AR(2): ", mae, "\n")
