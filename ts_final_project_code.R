@@ -32,16 +32,16 @@ library(ldsr)
 
 # Note: We did the data cleaning mainly in Excel. We did linear interpolation
 # of the hourly data to fill in for missing values. Then we aggregated the data
-# into daily values. 
+# into daily values.
 
-# Load the data 
+# Load the data
 aqi = read_excel("London_AQI_Daily.xlsx")
 head(aqi)
 
 # Check the structure of the data
 summary(aqi$USAQI)
 
-# Check outliers 
+# Check outliers
 hist(aqi$USAQI,
      xlab = "USAQI",
      main = "Histogram of USAQI",
@@ -53,23 +53,23 @@ qqline(aqi$USAQI, col = "blue")
 
 # There are a few large outliers so data transformation may be necessary
 
-# Correct date structure 
+# Correct date structure
 aqi$Date = as.Date(aqi$Date, format = "%Y-%m-%d")
 aqi$USAQI = as.integer(aqi$USAQI)
 
-# Convert to time series 
+# Convert to time series
 aqi_ts = ts(aqi$USAQI, frequency = 365, start = c(2013, 1, 2))
 
 ########## EDA: Everyone ##########
 
-# Plot time series 
+# Plot time series
 plot(y = aqi$USAQI, x = aqi$Date, main = "Time Series of London AQI", type = "l",
      ylab = "AQI", xlab = "Date")
 
-# ACF plot 
+# ACF plot
 acf(aqi_ts, main = "ACF of AQI")
 
-# PACF plot 
+# PACF plot
 pacf(aqi_ts, main = "PACF of AQI")
 # Lags have autocorrelation based on ACF but pacf shows limited autocorrelation
 # when removing effect of short term lags
@@ -89,10 +89,10 @@ kpss.test(new_aqi_ts) # stationary
 # Seasonal decomposition on differenced time series
 decomp = stl(new_aqi, s.window = "periodic")
 plot(decomp, main = "Seasonal Decomposition")
-# There seems to be a decreasing but stable trend over time with seasonality. 
+# There seems to be a decreasing but stable trend over time with seasonality.
 # The overall trend is very small in value, however.
 
-# Apply Box-Cox transformation 
+# Apply Box-Cox transformation
 lambda <- BoxCox.lambda(aqi_ts)
 boxcox_aqi <- BoxCox(aqi_ts, lambda)
 
@@ -117,7 +117,7 @@ pacf(diff_boxcox_aqi)
 # ACF plot also shows that the slow decay was removed, however there are still
 # small peaks after lag 0
 
-# Apply seasonal differencing 
+# Apply seasonal differencing
 seasonal_aqi <- diff(aqi_ts, lag = 365)
 
 # Test again for stationarity
@@ -125,13 +125,13 @@ adf.test(seasonal_aqi)  # stationary
 kpss.test(seasonal_aqi) # stationary
 acf(seasonal_aqi)
 pacf(seasonal_aqi)
-# The time series still shows slow decay in the ACF plot, but the PACF plot 
-# suggests that an AR component might be necessary. 
+# The time series still shows slow decay in the ACF plot, but the PACF plot
+# suggests that an AR component might be necessary.
 
 
 ########## Train/Test Split & Transformations ##########
 
-# Split the data into train and test 
+# Split the data into train and test
 train_data <- subset(dailyaqi, Date < as.Date("2025-1-01"))
 test_data  <- subset(dailyaqi, Date >= as.Date("2025-1-01"))
 
@@ -139,21 +139,21 @@ test_data  <- subset(dailyaqi, Date >= as.Date("2025-1-01"))
 aqi_train_ts <- ts(train_data$USAQI, frequency = 365, start = c(2013, 1))
 aqi_test_ts  <- ts(test_data$USAQI, frequency = 365, start = c(2025, 1))
 
-# First-order differencing 
+# First-order differencing
 diff_train <- diff(aqi_train_ts, differences = 1)
 
-# Differenced box-cox 
+# Differenced box-cox
 boxcox_train <- BoxCox(aqi_train_ts, lambda = (BoxCox.lambda(aqi_train_ts)))
 diff_boxcox_train <- diff(boxcox_train, differences = 1)
 
-# Seasonal differencing 
+# Seasonal differencing
 seasonal_train <- diff(aqi_train_ts, lag = 365)
 
 # We will construct our ARIMA/SARIMA/ARFIMA, ETS, Holt Winters, and BSTS models
 # on the differenced, Box-Cox with difference, and seasonally differenced data
-# since these time series have stationarity and help with the outliers. For the 
-# exponential smoothing and BSTS models, we will incorporate AR components to 
-# help minimize the autocorrelations. 
+# since these time series have stationarity and help with the outliers. For the
+# exponential smoothing and BSTS models, we will incorporate AR components to
+# help minimize the autocorrelations.
 
 
 
@@ -178,12 +178,12 @@ test <- window(ts_data, start = c(2025, 3))
 # Make list of transformations
 for (name in names(transformed_data)) {
   series <- transformed_data[[name]]
-  
+
   par(mfrow = c(1, 2))  # Set layout for two plots side by side
-  
+
   # ACF Plot
   acf(series, main = paste(name, "- ACF"))
-  
+
   # PACF Plot
   pacf(series, main = paste(name, "- PACF"))
 }
@@ -196,15 +196,15 @@ results <- list()
 # Fit models to each transformed series
 for (name in names(transformed_data)) {
   train_series <- transformed_data[[name]]
-  
+
   # ARIMA Model
   arima_model <- auto.arima(train_series)
   results[[paste0(name, "_ARIMA")]] <- arima_model
-  
+
   # SARIMA Model
   sarima_model <- auto.arima(train_series, seasonal = TRUE)
   results[[paste0(name, "_SARIMA")]] <- sarima_model
-  
+
   # ARFIMA Model
   arfima_model <- arfima(train_series)
   results[[paste0(name, "_ARFIMA")]] <- arfima_model
@@ -214,12 +214,12 @@ for (name in names(transformed_data)) {
 # ACF and PACF plots
 for (name in names(transformed_data)) {
   series <- transformed_data[[name]]
-  
+
   par(mfrow = c(1, 2))  
-  
+
   # ACF Plot
   acf(series, main = paste(name, "- ACF"))
-  
+
   # PACF Plot
   pacf(series, main = paste(name, "- PACF"))
 }
@@ -337,7 +337,7 @@ print(rmse_table)
 
 ########## Exponential Smoothing Models: Anusha ##########
 
-# ETS Models 
+# ETS Models
 
 
 # Differenced data
@@ -349,15 +349,15 @@ summary(diff_ets_mod)
 checkresiduals(diff_ets_mod)
 diff_for = forecast(diff_ets_mod, h = 59)
 plot(diff_for, main = "Forecast for 2025 (Differenced)", ylab = "AQI", xlab = "Date")
-plot(fitted(diff_ets_mod), residuals(diff_ets_mod), 
-     main="Residuals vs Fitted Values", 
-     xlab="Fitted Values", 
+plot(fitted(diff_ets_mod), residuals(diff_ets_mod),
+     main="Residuals vs Fitted Values",
+     xlab="Fitted Values",
      ylab="Residuals",
      pch = 16)
 abline(h=0, col="red")
 
 # Testing 
-forecast_values_diff = cumsum(c(tail(train_data$USAQI, 1), diff_for$mean))[-1] 
+forecast_values_diff = cumsum(c(tail(train_data$USAQI, 1), diff_for$mean))[-1]
 diff_resids = aqi_test_ts - forecast_values_diff
 diff_rmse = sqrt(mean(diff_resids^2))
 cat("Test RMSE:", diff_rmse)
@@ -368,7 +368,7 @@ summary(diff_ar)
 checkresiduals(diff_ar)
 Box.test(residuals(diff_ets_mod) + residuals(diff_ar), lag = 10)
 
-# Testing 
+# Testing
 diff_for_ar = forecast(diff_ar, h = 59)
 diff_preds = forecast_values_diff + diff_for_ar$mean
 
@@ -378,7 +378,7 @@ cat("Test RMSE:", diff_cets_rmse)
 # Residuals are still autocorrelated and the test RMSE went up.
 
 
-# Box-Cox with differencing 
+# Box-Cox with differencing
 
 # Model
 dbc_ets_mod = ets(diff_boxcox_train)
@@ -387,21 +387,21 @@ summary(dbc_ets_mod)
 checkresiduals(dbc_ets_mod)
 dbc_for = forecast(dbc_ets_mod, h = 59)
 plot(diff_for, main = "Forecast for 2025 (Differenced BC)", ylab = "AQI", xlab = "Date")
-plot(fitted(dbc_ets_mod), residuals(dbc_ets_mod), 
-     main="Residuals vs Fitted Values", 
-     xlab="Fitted Values", 
+plot(fitted(dbc_ets_mod), residuals(dbc_ets_mod),
+     main="Residuals vs Fitted Values",
+     xlab="Fitted Values",
      ylab="Residuals",
      pch = 16)
 abline(h=0, col="red")
 
-# Testing 
-# reverse differencing and box-cox 
+# Testing
+# reverse differencing and box-cox
 lambda_value = BoxCox.lambda(aqi_train_ts)z
 
 forecast_values_bc = cumsum(c(tail(train_data$USAQI, 1), dbc_for$mean))[-1]
-# have to shift values to ensure positive values since some values in 
+# have to shift values to ensure positive values since some values in
 # (forecast_values_bc * lambda_value + 1) are negative, causing the
-# exponentiation to fail. 
+# exponentiation to fail.
 forecast_values_bc = ((forecast_values_bc - min(forecast_values_bc) + 1) * lambda_value + 1)^(1/lambda_value)
 dbc_resids = aqi_test_ts - forecast_values_bc
 dbc_rmse = sqrt(mean(dbc_resids^2))
@@ -421,7 +421,7 @@ cat("Test RMSE:", dbc_cets_rmse)esiduals(dbc_ets_mod) + residuals(dbc_ar), lag =
 # Residuals are still autocorrelated but they decreased a little with using the AR.
 
 
-# Seasonally Differenced 
+# Seasonally Differenced
 
 # Model
 ds_ets_mod = ets(seasonal_train)
@@ -429,11 +429,11 @@ summary(ds_ets_mod)
 
 checkresiduals(ds_ets_mod)
 ds_for = forecast(ds_ets_mod, h = 59)
-plot(ds_for, main = "Forecast for 2025 (Differenced Seasonal)", ylab = "AQI", 
+plot(ds_for, main = "Forecast for 2025 (Differenced Seasonal)", ylab = "AQI",
      xlab = "Date", xlim = c(2024, 2025))
-plot(fitted(ds_ets_mod), residuals(ds_ets_mod), 
-     main="Residuals vs Fitted Values", 
-     xlab="Fitted Values", 
+plot(fitted(ds_ets_mod), residuals(ds_ets_mod),
+     main="Residuals vs Fitted Values",
+     xlab="Fitted Values",
      ylab="Residuals",
      pch = 16)
 abline(h=0, col="red")
@@ -471,16 +471,16 @@ summary(diff_hw_mod)
 checkresiduals(diff_hw_mod)
 diff_hw_for = forecast(diff_hw_mod, h = 59)
 plot(diff_hw_for, main = "Forecast for 2025 HW (Differenced)")
-plot(diff_hw_mod$fitted[,1], residuals(diff_hw_mod), 
-     main="Residuals vs Fitted Values", 
-     xlab="Fitted Values", 
+plot(diff_hw_mod$fitted[,1], residuals(diff_hw_mod),
+     main="Residuals vs Fitted Values",
+     xlab="Fitted Values",
      ylab="Residuals",
      pch = 16)
 abline(h=0, col="red")
 
 # Testing 
-forecast_values_hw_diff =  cumsum(c(tail(train_data$USAQI, 1), 
-                                    diff_hw_for$mean))[-1] 
+forecast_values_hw_diff =  cumsum(c(tail(train_data$USAQI, 1),
+                                    diff_hw_for$mean))[-1]
 diff_hw_res = aqi_test_ts - forecast_values_hw_diff
 diff_hw_rmse = sqrt(mean(diff_hw_res^2))
 cat("Test RMSE:", diff_hw_rmse)
@@ -495,7 +495,7 @@ cat("Test RMSE:", diff_chw_rmse)
 # Residuals are still autocorrelated and the test RMSE went up.
 
 
-# Box-Cox with differencing 
+# Box-Cox with differencing
 
 # Model
 dbc_hw_mod = HoltWinters(diff_boxcox_train, seasonal = "additive")
@@ -504,15 +504,15 @@ summary(dbc_hw_mod)
 checkresiduals(dbc_hw_mod)
 dbc_hw_for = forecast(dbc_hw_mod, h = 59)
 plot(diff_hw_for, main = "Forecast for 2025 HW (Differenced BC)")
-plot(dbc_hw_mod$fitted[,1], residuals(dbc_hw_mod), 
-     main="Residuals vs Fitted Values", 
-     xlab="Fitted Values", 
+plot(dbc_hw_mod$fitted[,1], residuals(dbc_hw_mod),
+     main="Residuals vs Fitted Values",
+     xlab="Fitted Values",
      ylab="Residuals",
      pch = 16)
 abline(h=0, col="red")
 
-# Testing 
-# reverse differencing and box-cox 
+# Testing
+# reverse differencing and box-cox
 lambda_value = BoxCox.lambda(aqi_train_ts)
 forecast_values_hw_bc = cumsum(c(tail(train_data$USAQI, 1), dbc_hw_for$mean))[-1]
 forecast_values_hw_bc = ((forecast_values_hw_bc - min(forecast_values_hw_bc) + 1) * lambda_value + 1)^(1/lambda_value)
@@ -523,7 +523,7 @@ cat("Test RMSE:", dbc_hw_rmse)
 
 # Add AR Component (AR(2)) since the residuals are autocorrelated
 Box.test(residuals(dbc_hw_mod) + residuals(dbc_ar), lag = 10)
-         
+
 # Testing
 dbc_preds2 = forecast_values_hw_diff + diff_for_ar$mean
 
@@ -532,7 +532,7 @@ cat("Test RMSE:", dbc_chw_rmse)
 # Residuals are still autocorrelated but the test had much lower RMSE.
 
 
-# Seasonally Differenced 
+# Seasonally Differenced
 
 # Model
 ds_hw_mod = HoltWinters(seasonal_train, seasonal = "additive")
@@ -541,9 +541,9 @@ summary(ds_hw_mod)
 checkresiduals(ds_hw_mod)
 dds_hw_for = forecast(ds_hw_mod, h = 59)
 plot(diff_hw_for, main = "Forecast for 2025 HW (Differenced Seasonal)")
-plot(ds_hw_mod$fitted[,1], residuals(ds_hw_mod), 
-     main="Residuals vs Fitted Values", 
-     xlab="Fitted Values", 
+plot(ds_hw_mod$fitted[,1], residuals(ds_hw_mod),
+     main="Residuals vs Fitted Values",
+     xlab="Fitted Values",
      ylab="Residuals",
      pch = 16)
 abline(h=0, col="red")
@@ -592,14 +592,14 @@ rownames(hw_rmse_table) <- c("Test Accuracy")
 
 print(hw_rmse_table)
 
-# Holt-winters made seasonal and differenced perform worse but boxcox 
+# Holt-winters made seasonal and differenced perform worse but boxcox
 # differenced performed better. For both, differenced was the best performing,
 # though it had lower RMSE for the simple ets model.
 
 
 ########## BSTS Models: Sarah ##########
 
-# check AR component for each transformations 
+# check AR component for each transformations
 best_model <- auto.arima(diff_aqi)
 summary(best_model)
 checkresiduals(best_model)
@@ -614,28 +614,28 @@ checkresiduals(best_model_boxcox)
 
 "
 Based on the auto.arima for each of the three transformations, an AR(5) for both the differenced and seasonally differences transformations
-was the best model. For the differenced box-cox transformation, an AR(2) was the best model. Therefore, these AR components will be used 
+was the best model. For the differenced box-cox transformation, an AR(2) was the best model. Therefore, these AR components will be used
 in the respective transformations.
 
 "
 
-# Check cores for parallel processing 
+# Check cores for parallel processing
 detectCores()
 
-# Differenced 
+# Differenced
 
 ss_diff <- list()
 ss_diff <- AddLocalLinearTrend(ss_diff, y = diff_train)
 ss_diff <- AddSeasonal(ss_diff, y = diff_train, nseasons = 7, season.duration = 1)   # weekly
-ss_diff <- AddSeasonal(ss_diff, y = diff_train, nseasons = 30, season.duration = 1)  # monthly 
+ss_diff <- AddSeasonal(ss_diff, y = diff_train, nseasons = 30, season.duration = 1)  # monthly
 ss_diff <- AddSeasonal(ss_diff, y = diff_train, nseasons = 365, season.duration = 1)  # yearly
 
-# Run model with parallel processing to fix crashing 
+# Run model with parallel processing to fix crashing
 options(mc.cores = parallel::detectCores() - 4) # use 10 cores
 model_diff <- bsts(diff_train, state.specification = ss_diff, niter = 1000, ping = 100)
 checkresiduals(model_diff)
 
-# Plot residuals 
+# Plot residuals
 residuals_bsts_diff <- residuals(model_diff)
 residuals_bsts_diff <- rowMeans(model_diff$one.step.prediction.errors, na.rm = TRUE)
 residuals_bsts_diff <- as.numeric(residuals(model_diff))
@@ -648,7 +648,7 @@ burn_diff <- SuggestBurn(0.1, model_diff)
 pred_diff <- predict(model_diff, horizon = 59, burn = burn_diff, quantiles = c(.025, .975))
 
 
-# Accuracy metrics 
+# Accuracy metrics
 actual_values <- test_data$USAQI
 
 # Reverse differencing
@@ -676,7 +676,7 @@ options(mc.cores = parallel::detectCores() - 4) # use 10 cores
 model_diff_ar <- bsts(diff_train, state.specification = ss_diff_ar, niter = 1000, ping = 100)
 checkresiduals(model_diff_ar)
 
-# Plot residuals 
+# Plot residuals
 residuals_bsts_diff_ar <- residuals(model_diff_ar)
 residuals_bsts_diff_ar <- rowMeans(model_diff_ar$one.step.prediction.errors, na.rm = TRUE)
 residuals_bsts_diff_ar <- as.numeric(residuals(model_diff_ar))
@@ -689,7 +689,7 @@ burn_diff_ar <- SuggestBurn(0.1, model_diff_ar)
 pred_diff_ar <- predict(model_diff_ar, burn = burn_diff_ar, horizon = 59)
 
 
-# Accuracy metrics 
+# Accuracy metrics
 # Revert differencing by adding the last known actual AQI value
 forecast_values_diff_ar <- cumsum(c(tail(train_data$USAQI, 1), pred_diff_ar$mean))[-1]
 
@@ -707,15 +707,15 @@ cat("MAPE for 1st order Differencing w/ AR(5):", mape, "%\n")
 ss_bc <- list()
 ss_bc <- AddLocalLinearTrend(ss_bc, y = diff_boxcox_train)
 ss_bc <- AddSeasonal(ss_bc, y = diff_boxcox_train, nseasons = 7, season.duration = 1)   # weekly
-ss_bc <- AddSeasonal(ss_bc, y = diff_boxcox_train, nseasons = 30, season.duration = 1)  # monthly 
+ss_bc <- AddSeasonal(ss_bc, y = diff_boxcox_train, nseasons = 30, season.duration = 1)  # monthly
 ss_bc <- AddSeasonal(ss_bc, y = diff_boxcox_train, nseasons = 365, season.duration = 1)  # yearly
 
-# Run model with parallel processing to fix crashing 
+# Run model with parallel processing to fix crashing
 options(mc.cores = parallel::detectCores() - 4) # use 10 cores
 model_bc <- bsts(diff_boxcox_train, state.specification = ss_bc, niter = 1000, ping = 100)
 checkresiduals(model_bc)
 
-# Plot residuals 
+# Plot residuals
 residuals_bsts_bc <- residuals(model_bc)
 residuals_bsts_bc <- rowMeans(model_bc$one.step.prediction.errors, na.rm = TRUE)
 residuals_bsts_bc <- as.numeric(residuals(model_bc))
@@ -728,9 +728,9 @@ burn_bc <- SuggestBurn(0.1, model_bc)
 pred_bc <- predict(model_bc, burn = burn_bc, horizon = 59)
 
 
-# Accuracy metrics 
+# Accuracy metrics
 
-# Reverse differencing and box-cox 
+# Reverse differencing and box-cox
 lambda_value <- BoxCox.lambda(aqi_train_ts)
 
 forecast_values_bc <- cumsum(c(tail(train_data$USAQI, 1), pred_bc$mean))[-1]
@@ -754,13 +754,13 @@ ss_bc_ar <- AddSeasonal(ss_bc_ar, y = diff_boxcox_train, nseasons = 7, season.du
 ss_bc_ar <- AddSeasonal(ss_bc_ar, y = diff_boxcox_train, nseasons = 30, season.duration = 1)  # monthly 
 ss_bc_ar <- AddSeasonal(ss_bc_ar, y = diff_boxcox_train, nseasons = 365, season.duration = 1)  # yearly
 
-# Run model with parallel processing to fix crashing 
+# Run model with parallel processing to fix crashing
 options(mc.cores = parallel::detectCores() - 4) # use 10 cores
 model_bc_ar <- bsts(diff_boxcox_train, state.specification = ss_bc_ar, niter = 1000, ping = 100)
 
 checkresiduals(model_bc_ar)
 
-# Plot residuals 
+# Plot residuals
 residuals_bsts_bc_ar <- residuals(model_bc_ar)
 residuals_bsts_bc_ar <- rowMeans(model_bc_ar$one.step.prediction.errors, na.rm = TRUE)
 residuals_bsts_bc_ar <- as.numeric(residuals(model_bc_ar))
@@ -773,9 +773,9 @@ burn_bc_ar <- SuggestBurn(0.1, model_bc_ar)
 pred_bc_ar <- predict(model_bc_ar, burn = burn_bc_ar, horizon = 59)
 
 
-# Accuracy metrics 
+# Accuracy metrics
 
-# Reverse differencing and box-cox 
+# Reverse differencing and box-cox
 lambda_value <- BoxCox.lambda(aqi_train_ts)
 forecast_values_bc_ar <- cumsum(c(tail(train_data$USAQI, 1), pred_bc_ar$mean))[-1]
 forecast_values_realar <- ((forecast_values_bc_ar - min(forecast_values_bc_ar) + 1) * lambda_value + 1)^(1/lambda_value)
@@ -797,7 +797,7 @@ ss_season <- AddSeasonal(ss_season, y = seasonal_train, nseasons = 7, season.dur
 ss_season <- AddSeasonal(ss_season, y = seasonal_train, nseasons = 30, season.duration = 1)  # monthly 
 ss_season <- AddSeasonal(ss_season, y = seasonal_train, nseasons = 365, season.duration = 1)  # yearly
 
-# Run model with parallel processing to fix crashing 
+# Run model with parallel processing to fix crashing
 options(mc.cores = parallel::detectCores() - 4) # use 10 cores
 model_season <- bsts(seasonal_train, state.specification = ss_season, niter = 1000, ping = 100)
 
@@ -816,7 +816,7 @@ burn_season <- SuggestBurn(0.1, model_season)
 pred_season <- predict(model_season, burn = burn_season, horizon = 59)
 
 
-# Accuracy metrics 
+# Accuracy metrics
 
 # Reverse seasonal differencing
 forecast_values_season <- (aqi_train_ts[(length(aqi_train_ts) - 365 + 1):(length(aqi_train_ts) - 365 + 59)]) + pred_season$mean
@@ -858,7 +858,7 @@ burn_season_ar <- SuggestBurn(0.1, model_season_ar)
 pred_season_ar <- predict(model_season_ar, burn = burn_season_ar, horizon = 59)
 
 
-# Accuracy metrics 
+# Accuracy metrics
 
 
 # Reverse seasonal differencing
@@ -873,39 +873,15 @@ cat("RMSE for Seasonal Differencing w/ AR(5):", rmse, "\n")
 cat("MAE for Seasonal Differencing w/ AR(5): ", mae, "\n")
 cat("MAPE for Seasonal Differencing w/ AR(5):", mape, "%\n")
 
-" 
-Among the six models evaluated, the BSTS with seasonal differencing with AR(5) 
-component was the best-performing model. This specific data transformation met 
-the assumption of the BSTS model, ensuring that the residuals were uncorrelated. 
-It also achieved the lowest error metrics, although the metrics were still 
-relatively high, indicating that the model does not accurately capture the 
+"
+Among the six models evaluated, the BSTS with seasonal differencing with AR(5)
+component was the best-performing model. This specific data transformation met
+the assumption of the BSTS model, ensuring that the residuals were uncorrelated.
+It also achieved the lowest error metrics, although the metrics were still
+relatively high, indicating that the model does not accurately capture the
 underlying patterns in the data.
 "
 #####
 
 # note: John's LSTM model is in the LSTM jupyter notebooks. The LSTM model
 # performed the best out of all the models we constructed.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
