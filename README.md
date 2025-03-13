@@ -1,5 +1,5 @@
 # Daily AQI Forecasting
 
-*ADSP 31006: Time Series Analysis and Forecasting*
+*ADSP 31006: Time Series Analysis and Forecasting: Final Project*
 
 Forecasting London's Air Quality Index using multiple advanced time series methods. 
