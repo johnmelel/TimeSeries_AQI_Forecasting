@@ -109,39 +109,32 @@ Due to the data being non-stationary, we initially differenced the time series b
 
 Autoregressive Integrated Moving Average (ARIMA), Seasonal ARIMA (SARIMA), and Autoregressive Fractionally Integrated Moving Average (ARFIMA) models were employed to forecast the given time series data. These models are particularly useful in capturing trends, seasonality, and long-range dependencies in time series data. ARIMA is well-suited for stationary data, while SARIMA accounts for seasonality, and ARFIMA is useful for handling long-memory processes. The choice of these models allows for a comprehensive evaluation of different types of dependencies within the dataset.
 
-Model Construction and Assumptions
-
 The models were constructed using three different data transformations: first-order differencing, Box-Cox differencing, and seasonal differencing. The ARIMA and SARIMA models were fitted using the auto.arima() function, which selected the best parameters based on AIC. The ARFIMA model was estimated using the arfima() function. ARFIMA, in particular, allows for fractional differencing, which provides flexibility in modeling long-memory properties without over-differencing the data.
 
-These models assume stationarity, independence of residuals, and a normally distributed error structure. The stationarity assumption was tested using the Augmented Dickey-Fuller (ADF) test, which showed significant p-values, indicating stationarity after differencing. The KPSS test confirmed this stationarity, as all p-values were greater than 0.1. Additionally, the Ljung-Box test was used to check for autocorrelation in the residuals, and the results suggested that the ARFIMA model had the least amount of autocorrelation, further supporting its suitability. Normality of residuals was examined using histograms, which suggested that ARFIMA residuals were closest to a normal distribution compared to ARIMA and SARIMA.
-
-Model Assumption Validation
+These models assume stationarity, independence of residuals, and a normally distributed error structure. The ADF test showed significant p-values, indicating stationarity after differencing. The KPSS test confirmed this stationarity, as all p-values were greater than 0.1. Additionally, the Ljung-Box test suggested that the ARFIMA model had the least amount of autocorrelation, further supporting its suitability. Normality of residuals was examined using histograms, which suggested that ARFIMA residuals were closest to a normal distribution compared to ARIMA and SARIMA.
 
 To assess the model assumptions, ACF plots and Residuals vs. Fitted plots were examined:
 
 ```{r}
-knitr::include_graphics("ACF_ARFIMA.png")
+knitr::include_graphics("ARIMA_HJ/Plots_final/ACF_ARFIMA.png")
 ```
 
 ```{r}
-knitr::include_graphics("ACF_SARIMA.png")
+knitr::include_graphics("ARIMA_HJ/Plots_final/ACF_SARIMA.png")
 ```
 
 The ACF plots for both ARFIMA and SARIMA models indicate that residual autocorrelation is minimal, supporting the assumption of white noise residuals. However, SARIMA exhibits some autocorrelation at lower lags, suggesting potential room for improvement in parameter tuning. The ARFIMA model, with fractional differencing, appears to have eliminated most of the significant autocorrelations observed in other models, validating its effectiveness in handling long-range dependencies.
 
 ```{r}
-knitr::include_graphics("Residuals_FItted_ARFIMA.png")
+knitr::include_graphics("ARIMA_HJ/Plots_final/Residuals_FItted_ARFIMA.png")
 ```
 
 ```{r}
-knitr::include_graphics("Residuals_FItted_SARIMA.png")
+knitr::include_graphics("ARIMA_HJ/Plots_final/Residuals_FItted_SARIMA.png")
 ```
 
 The Residuals vs. Fitted plots reveal that errors are randomly distributed without any significant pattern, confirming that the models appropriately capture the variance in the data. The ARFIMA residuals appear more homoscedastic compared to SARIMA, which shows slight heteroskedasticity. The normality of residuals was further confirmed through Shapiro-Wilk tests, where the ARFIMA model achieved the highest p-value, supporting the assumption of normally distributed errors.
 
-RMSE Comparison
-
-The models' performances were evaluated using Root Mean Squared Error (RMSE):
 
 ```{r}
 rmse_table <- data.frame(
@@ -155,17 +148,13 @@ knitr::kable(rmse_table, caption = "RMSE Comparison of Models", col.names = c("T
 
 Among all models, the first-order differencing ARFIMA model performed the best, achieving the lowest RMSE value of 18.68. The Box-Cox differencing transformation did not improve model performance significantly, as the RMSE values remained relatively high across all models. The seasonal differencing transformation provided moderate improvements but was still outperformed by first-order differencing.
 
-Forecasting with the Best Model
-
 Given that the ARFIMA model with first-order differencing had the lowest RMSE, it was selected for forecasting.
 
 ```{r}
 knitr::include_graphics("First_order_ARFIMA_Forecast.png")
 ```
 
-The forecast plot shows projected values for the next period with confidence intervals. The forecast aligns well with historical patterns, indicating that ARFIMA effectively captures the underlying time series structure. The confidence intervals remain relatively narrow, signifying a stable prediction range. The mean absolute percentage error (MAPE) was also computed, confirming that ARFIMA maintained the lowest error rate across all forecasted values, reinforcing its suitability for this dataset.
-
-Conclusion
+The forecast plot shows projected values for the next period with confidence intervals. The forecast aligns well with historical patterns, indicating that ARFIMA effectively captures the underlying time series structure. The confidence intervals remain relatively narrow, signifying a stable prediction range. 
 
 The analysis highlights that ARFIMA is the most effective model for this dataset, outperforming ARIMA and SARIMA in terms of RMSE. The model assumptions were largely satisfied, as indicated by the residual diagnostics. The ACF and residual plots support the conclusion that ARFIMA successfully captured both short-term and long-term dependencies, while the RMSE comparison and forecasting results confirm its superior predictive accuracy. However, future improvements could explore alternative fractional differencing parameters and hybrid models that combine ARFIMA with machine learning techniques to further enhance predictive performance.
 
