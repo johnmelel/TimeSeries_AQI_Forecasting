@@ -11,7 +11,6 @@ library(Boom)
 library(parallel)
 library(ldsr)
 
-
 # load data 
 dailyaqi <- read_excel("London_AQI_Daily.xlsx")
 dailyaqi$Date <- as.Date(dailyaqi$Date, format="%Y-%m-%d")

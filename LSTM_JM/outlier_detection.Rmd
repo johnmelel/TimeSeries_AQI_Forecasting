@@ -1,6 +1,6 @@
 ```{r}
 # Load the data
-data <- read.csv("London_AQI_Daily.csv")
+data <- read.csv("Data\London_AQI_Daily.csv")
 head(data)
 ```
 
@@ -14,6 +14,8 @@ summary(data$USAQI)
 #conduct outlier detection
 boxplot(data$USAQI)
 ```
+
+
 
 
 ```{r}

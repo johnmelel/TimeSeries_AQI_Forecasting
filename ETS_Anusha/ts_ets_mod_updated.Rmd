@@ -489,6 +489,23 @@ Holt-winters made seasonal and differenced perform worse but boxcox differenced 
 
 
 
+# Plots: 
+
+```{r}
+par(mfrow = c(1, 3))
+acf(residuals(diff_hw_mod), main = "1st Order Differenced")
+acf(residuals(dbc_hw_mod), main = "Differenced Box-Cox")
+acf(residuals(ds_hw_mod), main = "Seasonally Differenced")
+```
+
+
+```{r}
+par(mfrow = c(1, 3))
+acf(residuals(diff_ets_mod), main = "1st Order Differenced")
+acf(residuals(dbc_ets_mod), main = "Differenced Box-Cox")
+acf(residuals(ds_ets_mod), main = "Seasonally Differenced")
+```
+
 
 
 
