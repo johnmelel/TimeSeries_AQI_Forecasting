@@ -294,7 +294,10 @@ rmse <- function(actual, predicted) {
   sqrt(mean((actual - predicted)^2))
 }
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 # Calculate RMSE with undifferenced forecasts
 rmse_results <- list()
 for (model_name in names(forecasts)) {
