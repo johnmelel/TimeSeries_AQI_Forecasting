@@ -23,8 +23,8 @@ ggplot(dailyaqi, aes(x=Date, y=USAQI)) +
 
 ```{r}
 # examine trends and autocorrelation
-acf(dailyaqi$USAQI)
-pacf(dailyaqi$USAQI)
+acf(dailyaqi$USAQI, main = "Autocorrelation of Daily AQI in London", col.main = "blue")
+pacf(dailyaqi$USAQI, main = "Partial Autocorrelation of Daily AQI in London", col.main = "blue")
 
 # check for stationarity
 adf.test(dailyaqi$USAQI)
