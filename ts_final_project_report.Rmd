@@ -312,7 +312,7 @@ https://github.com/johnmelel/TimeSeries_AQI_Forecasting
 
 Member Contributions:
 
-Anusha - EDA, exponential smoothing models, coalescing final code R script, formatting final report RMD and coalescing individual member write-ups
+Anusha - EDA, exponential smoothing models, coalescing final code R script, formatting final report RMD, and coalescing individual member write-ups
 
 Sarah - EDA, BSTS models, data transformations
 
