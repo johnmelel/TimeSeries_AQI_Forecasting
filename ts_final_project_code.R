@@ -3,14 +3,29 @@
 # Group: Anusha Bhat, Sarah Chaker, Hritik Jhaveri, John Melel
 # March 13, 2025
 
+# link to github for all files 
+https://github.com/johnmelel/TimeSeries_AQI_Forecasting
 
 
 ########## Libraries ##########
+
 library(readxl)
 library(tseries)
 library(forecast)
 library(hts)
 library(zoo)
+library(tidyverse)
+library(tseries)
+library(lmtest)
+library(FinTS)
+library(fracdiff)
+library(urca)
+library(bsts)
+library(lmtest)
+library(bsts)
+library(Boom)
+library(parallel)
+library(ldsr)
 
 
 ########## Data Cleaning: Everyone ##########
