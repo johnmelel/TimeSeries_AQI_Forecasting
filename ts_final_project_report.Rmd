@@ -22,11 +22,50 @@ The data used for this project is sourced from Open-Meteo, an open-source weathe
 
 # 2. Data 
 
+The dataset used in this study is sourced from Open-Meteo and contains hourly Air Quality Index (AQI) values for London.
 
 ## 2.1 Data Transformation
 
+The AQI measurements are recorded at an hourly frequency, and few minor gaps in the data were observed due to occasional missing values. To address this, linear interpolation was applied to estimate and fill in the missing hourly values, and following this interpolation step, the hourly AQI values were aggregated to obtain daily AQI readings, which is used for the forecasting.
+
 ## 2.2 Elementary Data Analysis
 
+The AQI plot for London from 2013 to 2025.
+```{r, echo=FALSE}
+library(knitr)
+knitr::include_graphics("aqi_plot.png")
+```
+
+ACF Plot: The ACF plot indicates some autocorrelation.
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::include_graphics("acf.png")
+```
+
+PACF Plot: The PACF plot indicates some autocorrelation.
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::include_graphics("pacf.png")
+```
+
+STL Decomposition:
+The STL decomposition shows clear trends and some yearly seasonality.
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::include_graphics("stl.png")
+```
+
+Stationarity tests: We conducted ADF and KPSS test for the data, and notice ADF test indicating stationarity for the data, but the KPSS test indicates non-stationarity for the non-differenced data and indicates stationarity for the differenced data.
+
+Outliers: The AQI values were inspected for outliers. Although some values deviated significantly from the mean, they were still within a reasonable AQI range and were retained in the dataset.
+
+
+Data Citation:
+Open Meteo (https://open-meteo.com/en/docs/air-quality-api)
+METEO FRANCE, Institut national de l'environnement industriel et des risques (Ineris), Aarhus University, Norwegian Meteorological Institute (MET Norway), Jülich Institut für Energie- und Klimaforschung (IEK), Institute of Environmental Protection – National Research Institute (IEP-NRI), Koninklijk Nederlands Meteorologisch Instituut (KNMI), Nederlandse Organisatie voor toegepast-natuurwetenschappelijk onderzoek (TNO), Swedish Meteorological and Hydrological Institute (SMHI), Finnish Meteorological Institute (FMI), Italian National Agency for New Technologies, Energy and Sustainable Economic Development (ENEA) and Barcelona Supercomputing Center (BSC) (2022): CAMS European air quality forecasts, ENSEMBLE data. Copernicus Atmosphere Monitoring Service (CAMS) Atmosphere Data Store (ADS). 
 
 
 # 3. Models
@@ -38,7 +77,33 @@ The data used for this project is sourced from Open-Meteo, an open-source weathe
 ## 3.3 BSTS
 
 ## 3.4 LSTM
+We used LSTM because it outperforms traditional models for complex, nonlinear time series data, especially when long-term dependencies exist. We created a stacked model with double layer LSTM for learning timeseries data and two dense layers for predicting output, and our sequence window was for 60 days. The model was trained for 5 epochs and gave great predictions.
 
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::include_graphics("lstm_plot.png")
+```
+
+The prediction residuals are non-correlated, which also indicates that it is a good model. 
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::include_graphics("lstm_resid.png")
+```
+
+We evaluated our model with RMSE, and had better results compared to other simpler models.
+Train RMSE: 11.4
+Test RMSE: 10.2
+Train MAE: 8.7
+Test MAE: 8.7
+Train MAPE: 19.5
+Test MAPE: 19.5
+
+Our LSTM model also outperforms when evaluated against the Naïve Persistence base model, which is simply assuming the next value to be same as today’s value.
+Naive Persistence Model RMSE: 10.6
+Naive Persistence Model MAE: 8.4
+Naive Persistence Model MAPE: 19.2
 
 
 
