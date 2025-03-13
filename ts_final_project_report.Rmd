@@ -3,13 +3,15 @@ title: "Forecasting Air Quality Index in London"
 author: "Anusha Bhat, Sara Chaker, Hritik Jhaveri, John Melel"
 date: "2025-03-13"
 output:
+  html_document:
+    df_print: paged
   pdf_document:
     latex_engine: xelatex
 linestretch: 1.241
 fontsize: 12pt
 header-includes:
-   - \setlength{\parindent}{1em}
-   - \usepackage{indentfirst}   
+- \setlength{\parindent}{1em}
+- \usepackage{indentfirst}
 ---
 
 ```{r setup, include=FALSE, messages = FALSE, warnings = FALSE}
