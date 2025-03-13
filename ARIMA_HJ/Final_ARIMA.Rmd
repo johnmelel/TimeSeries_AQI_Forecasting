@@ -61,7 +61,7 @@ This dataset provides a structured historical view of air pollution in London, w
 
 # Load required libraries
 library(tidyverse)
-library(lubridate)
+library(readxl)
 library(forecast)
 library(tseries)
 library(readr)
@@ -82,7 +82,7 @@ library(kableExtra)
 #getwd()
 
 #df <- read.csv("London_AQI_Daily.csv")
-df <- read.csv("../Data/London_AQI_Daily.csv")
+df <- read_excel("C:\\Users\\anush\\Downloads\\London_AQI_Daily.xlsx")
 # Convert 'Date' column to datetime format
 df$Date <- as.Date(df$Date, format = "%Y-%m-%d")
 
@@ -228,6 +228,8 @@ for (model_name in names(forecasts)) {
 }
 
 ```
+
+
 ```{r}
 for (model_name in names(forecasts)) {
   print(model_name)
@@ -288,6 +290,11 @@ for (name in names(forecasts)) {
   }
 }
 
+rmse <- function(actual, predicted) {
+  sqrt(mean((actual - predicted)^2))
+}
+
+
 # Calculate RMSE with undifferenced forecasts
 rmse_results <- list()
 for (model_name in names(forecasts)) {
@@ -325,9 +332,9 @@ print(rmse_results)
 
 rmse_table <- data.frame(
   Transformation = c("1st Differencing", "Box-Cox Differencing", "Seasonal Differencing"),
-  ARIMA_RMSE = c(52.613, 52.717, 51.978),
-  SARIMA_RMSE = c(52.613, 52.717, 51.978),
-  ARFIMA_RMSE = c(52.832, 52.717, 52.739)
+  ARIMA_RMSE = c(23.56, 42.53, 27.22),
+  SARIMA_RMSE = c(23.56, 42.53, 27.22),
+  ARFIMA_RMSE = c(18.68, 42.64, 26.89)
 )
 
 ```
@@ -354,7 +361,7 @@ The RMSE values measure forecast accuracy (lower is better).
 ```{r}
 
 kable(rmse_table, caption = "RMSE Table", digits = 3) %>%
-  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "bordered", "hover"))
+  kable_styling(full_width = FALSE, )
 ```
 
 
@@ -363,7 +370,7 @@ kable(rmse_table, caption = "RMSE Table", digits = 3) %>%
 ## 2. Residual Diagnostics: Model Assumption Checks
 ### (a) Stationarity Tests (ADF & KPSS)
 All transformations successfully produced stationary residuals (p-values < 0.05).
-ARFIMA models had weaker stationarity than ARIMA and SARIMA.
+ARFIMA models had weaker stationary than ARIMA and SARIMA.
 *Assumption Fulfilled: Residuals are stationary*
 
 ### (b) Residuals vs. Fitted Plots
@@ -383,7 +390,7 @@ SARIMA and ARIMA provided stable forecasts, while ARFIMA had wider confidence in
 Box-Cox differencing models showed slightly higher volatility in forecasts.
 *Best Forecasts: SARIMA with Seasonal Differencing*
 
-## Final Recommendations
+## Final Recommendations *****FIX THIS****
 *Best Model: SARIMA with Seasonal Differencing*
 Lowest RMSE (51.978) across all models.
 Better residual diagnostics (stationary, minimal autocorrelation).
