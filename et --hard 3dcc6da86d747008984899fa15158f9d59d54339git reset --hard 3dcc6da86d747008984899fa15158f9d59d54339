@@ -1,0 +1,449 @@
+[33mcommit 3dcc6da86d747008984899fa15158f9d59d54339[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: abhat09 <asbhat09@gmail.com>
+Date:   Thu Mar 13 05:45:30 2025 -0500
+
+    Final Report Updates
+
+[33mcommit a9ef1d09c5e4e02e1ea180f3643313b5429b1a21[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: codex83 <42984662+codex83@users.noreply.github.com>
+Date:   Thu Mar 13 14:43:02 2025 +0530
+
+    Updated Plots
+
+[33mcommit 705e57cd67116c4698fc3be86a56900b20bc92a3[m
+Author: abhat09 <asbhat09@gmail.com>
+Date:   Thu Mar 13 04:11:39 2025 -0500
+
+    Updated Final Report
+
+[33mcommit f6a0599ea1d1f267a0bb9397068a612d55cda99f[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Thu Mar 13 02:13:20 2025 -0500
+
+    cleaning
+
+[33mcommit 8c410c35d5f21f4705aca874d38489b5e28dc143[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Thu Mar 13 01:57:52 2025 -0500
+
+    small update
+
+[33mcommit 0d002a42d26f824dc0dee90673cfa356eb1aff69[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Thu Mar 13 01:06:39 2025 -0500
+
+    create copy
+
+[33mcommit c873cc9ba0d57df7b018d9e2108a5800932a196e[m
+Merge: 42b61bc 4994269
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Thu Mar 13 01:04:06 2025 -0500
+
+    Merge branch 'main' of https://github.com/johnmelel/TimeSeries_AQI_Forecasting
+
+[33mcommit 42b61bc0c4e4545f6dcda4aa62b7b20df4c4dc48[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Thu Mar 13 01:03:58 2025 -0500
+
+    added Sara pics
+
+[33mcommit 49942690f9d0d54f7ca684a649ce8ddacfbabec8[m
+Author: abhat09 <asbhat09@gmail.com>
+Date:   Thu Mar 13 01:03:54 2025 -0500
+
+    Final Models Code
+
+[33mcommit 91c45c3fabf3dc488317ad0d68b1f8b3e25bacc3[m
+Author: abhat09 <asbhat09@gmail.com>
+Date:   Thu Mar 13 01:00:33 2025 -0500
+
+    Final Models Code
+
+[33mcommit f59677010f2226f4850766512978373d43459030[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Thu Mar 13 00:55:25 2025 -0500
+
+    added plots in the report
+
+[33mcommit 217da2d882884b84c46eb685320f413251acd43f[m
+Author: abhat09 <asbhat09@gmail.com>
+Date:   Wed Mar 12 23:48:19 2025 -0500
+
+    Final Report Files
+
+[33mcommit b27e117a9da84348f468a51b2eadc1de12182436[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Wed Mar 12 23:44:18 2025 -0500
+
+    notes final push
+
+[33mcommit 6c0f76f166d90a509cbceb9deae1eecc3b50ca3d[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 22:49:16 2025 -0500
+
+    final figures
+
+[33mcommit c9a4d7cbbf2b771b1c2a10042d5026c20e0cbcfa[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Wed Mar 12 22:15:59 2025 -0500
+
+    html
+
+[33mcommit 5a0229c694b134c39410ffc5a0d698c216138b91[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Wed Mar 12 22:15:38 2025 -0500
+
+    html
+
+[33mcommit 68f8b6344641b1a007a41b5d324988b708c4eb3c[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Wed Mar 12 22:14:54 2025 -0500
+
+    notes
+
+[33mcommit 73544f9fff61b322146e184ca72e54fd8838dd4b[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 21:25:58 2025 -0500
+
+    updated figures
+
+[33mcommit 4421de18878e951ceaeaf1b8997b5d9fba2240d4[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 21:13:37 2025 -0500
+
+    Delete TS_final_project_BSTS.R
+
+[33mcommit 10ed45e37710569f6b673a40bba89ba3e19fa089[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 20:53:55 2025 -0500
+
+    Delete BSTS.Rmd
+
+[33mcommit 61f35f767162a505b1e9067fe736f70c734894a8[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 20:52:21 2025 -0500
+
+    Final code
+
+[33mcommit 9205c7ba2fda7f81694ac8732030c1d3736aab1a[m
+Author: abhat09 <asbhat09@gmail.com>
+Date:   Wed Mar 12 20:43:09 2025 -0500
+
+    Fixing ARIMA
+
+[33mcommit e9f12f3773b4bb9e211862d6c97ab8b8ef14b968[m
+Author: abhat09 <asbhat09@gmail.com>
+Date:   Wed Mar 12 18:56:48 2025 -0500
+
+    Adding ETS Models
+
+[33mcommit da8d6c9cea6900fc4f6dd537fbd15102185437d9[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Wed Mar 12 18:54:21 2025 -0500
+
+    Fixing Hritik
+
+[33mcommit 2f9c01af9179c5f77049c6e5c94624bdaa8eda35[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 17:30:01 2025 -0500
+
+    Final model
+
+[33mcommit 440cb2d865e15c57b2bfe088874ec04ee7b9221a[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 17:29:25 2025 -0500
+
+    FInal model
+
+[33mcommit 6666b7d3d9ef5f8c8a6b9bb2ef8395b897443438[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 15:04:14 2025 -0500
+
+    Updated Rmd
+
+[33mcommit f6a1e8a6ec0833cff39dcc94bc7740992a4a066b[m
+Merge: 3d11473 9fdc9e9
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 14:26:57 2025 -0500
+
+    Merge branch 'main' of https://github.com/johnmelel/TimeSeries_AQI_Forecasting
+
+[33mcommit 3d11473cbcd277565d2d58bfccbba55ac1816044[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 14:26:46 2025 -0500
+
+    BSTS Seasonal ACF plot
+
+[33mcommit 9fdc9e94511bdc721f29ef640b09d8a6a5b0133c[m
+Merge: 5b22557 0a6f652
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Wed Mar 12 14:16:28 2025 -0500
+
+    Merge branch 'main' of https://github.com/johnmelel/TimeSeries_AQI_Forecasting
+
+[33mcommit 5b2255741fd742e98d3af3e881a09a03dfd9f6b7[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Wed Mar 12 14:16:21 2025 -0500
+
+    added EDA
+
+[33mcommit 0a6f652edeaed1e199badda37b5847548de9892e[m
+Merge: 7e57374 cdffef3
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 14:06:52 2025 -0500
+
+    Merge branch 'main' of https://github.com/johnmelel/TimeSeries_AQI_Forecasting
+
+[33mcommit 7e57374a6a363849a6b8c6578492745a15519a12[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 14:06:34 2025 -0500
+
+    Updated code
+
+[33mcommit cdffef3f1033ae92fd4c269a0ff2ce7a1e06ff69[m
+Author: codex83 <42984662+codex83@users.noreply.github.com>
+Date:   Wed Mar 12 23:25:57 2025 +0530
+
+    Final file upload
+
+[33mcommit df4e3546d9ab2b8b53702427db142f7a39537e8a[m
+Author: codex83 <42984662+codex83@users.noreply.github.com>
+Date:   Wed Mar 12 21:57:07 2025 +0530
+
+    moved file into folder
+
+[33mcommit 0b55ab630eaae12e94479ab66d29b40fd2fd08f9[m
+Merge: 470a6e0 f949f04
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 11:20:24 2025 -0500
+
+    Merge branch 'main' of https://github.com/johnmelel/TimeSeries_AQI_Forecasting
+
+[33mcommit 470a6e0f57d39bd1fb5c8d39a6494ad81eeabbea[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 11:20:04 2025 -0500
+
+    BSTS files
+
+[33mcommit f949f0452258c3f811960bb45fc86f27374aae8b[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Wed Mar 12 11:03:17 2025 -0500
+
+    folders
+
+[33mcommit 6280d5663ed0fb3ecf8b33716fcc11839872616b[m
+Merge: cb66692 57c93d0
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 10:57:32 2025 -0500
+
+    Merge branch 'main' of https://github.com/johnmelel/TimeSeries_AQI_Forecasting
+
+[33mcommit cb66692d3b7d0a2face5caa8b21b9783bc58a87e[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 10:57:27 2025 -0500
+
+    BSTS Files
+
+[33mcommit 57c93d04c7eff333800b7df4a4b6cec20f444ee8[m
+Author: codex83 <42984662+codex83@users.noreply.github.com>
+Date:   Wed Mar 12 20:42:55 2025 +0530
+
+    Add files via upload
+
+[33mcommit ed7486f59673369e92e4b34484bd3bebe213d388[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 09:57:59 2025 -0500
+
+    Updated code for BSTS model
+
+[33mcommit 413c29fa1130d458b044825487132280d7db910c[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 09:57:46 2025 -0500
+
+    ACF plots from BSTS model
+
+[33mcommit 7d206131bd45b8ee085abdd9ae9a262ee13e186e[m
+Merge: d8a4e42 015818c
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Wed Mar 12 03:24:49 2025 -0500
+
+    Merge branch 'main' of https://github.com/johnmelel/TimeSeries_AQI_Forecasting
+
+[33mcommit d8a4e42fb61b06f0227a6fefa4b1c714e52d6a1b[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Wed Mar 12 03:24:47 2025 -0500
+
+    tried something
+
+[33mcommit 015818c9da47d2d43dabe8a73b3e6bec3a3c7e09[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 01:09:32 2025 -0500
+
+    Updated BSTS.Rmd
+
+[33mcommit 82353db3e882c87a3238e4aadd568c1f34a4e246[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 01:02:53 2025 -0500
+
+    ACF plots for BSTS md file
+
+[33mcommit 914b63717fcb4920527ab0678280c89871586988[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Wed Mar 12 01:02:34 2025 -0500
+
+    Updated BSTS code
+
+[33mcommit dabafbe752339315dd8b34d30e771c30de57e3f2[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Tue Mar 11 22:14:58 2025 -0500
+
+    Updated BSTS Rmd
+
+[33mcommit 481155cd9ebac2506c38b76351fa0d67755e0d24[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Tue Mar 11 13:25:02 2025 -0500
+
+    Updated BSTS models
+
+[33mcommit 387f24a2a586e22bea4c94a227c231290599182d[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Tue Mar 11 13:07:15 2025 -0500
+
+    Updated BSTS models
+
+[33mcommit d9e6127f8ea5c674ace08f954cd316bb24599dcf[m
+Merge: b684fa7 82f9d82
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Mon Mar 10 11:13:16 2025 -0500
+
+    Merge branch 'main' of https://github.com/johnmelel/TimeSeries_AQI_Forecasting
+
+[33mcommit b684fa7a2ec667a0fe4e9826ba0cff1c25b0d3bd[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Mon Mar 10 11:12:57 2025 -0500
+
+    updated BSTS model
+
+[33mcommit 82f9d823b27bbc0269440f7888bfa2dfc05a22a9[m
+Merge: 6601497 7142448
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Mon Mar 10 10:56:47 2025 -0500
+
+    Merge branch 'main' of https://github.com/johnmelel/TimeSeries_AQI_Forecasting
+
+[33mcommit 6601497cfd4417f8e0b3f0bd70212660773d45a7[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Mon Mar 10 10:56:36 2025 -0500
+
+    update outlier
+
+[33mcommit 7142448454bd53641d61e5cd267a5b2ac0b9daa0[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Mon Mar 10 10:17:20 2025 -0500
+
+    BSTS model
+
+[33mcommit ba7e558336675edd96294a6aa8f258b71f127a35[m
+Merge: ad94ae9 0870590
+Author: abhat09 <asbhat09@gmail.com>
+Date:   Mon Mar 10 05:37:12 2025 -0500
+
+    Anusha's models
+    :
+
+[33mcommit ad94ae9cded07438eb68f2f577db57b0dd3c7c20[m
+Author: abhat09 <asbhat09@gmail.com>
+Date:   Mon Mar 10 05:35:10 2025 -0500
+
+    Anusha Models
+
+[33mcommit 0870590f0ab6aef03533625b467c9aa3a148e85a[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Mon Mar 10 05:03:00 2025 -0500
+
+    outlier
+
+[33mcommit 8c54e46becaaef3d5eed73467db257393f8658b6[m
+Author: John Melel <84776601+johnmelel@users.noreply.github.com>
+Date:   Sun Mar 9 01:18:05 2025 -0600
+
+    Rename ARIMA:SARIMA_2.Rmd to ARIMA_SARIMA_2.Rmd
+
+[33mcommit 1602c09cadd554a279a6a1df707fc057750cc2eb[m
+Author: codex83 <42984662+codex83@users.noreply.github.com>
+Date:   Sun Mar 9 10:38:20 2025 +0530
+
+    Add files via upload
+
+[33mcommit 18ab9e2658fd42375fa23aca7cdb894ff4dd7007[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Thu Mar 6 18:03:05 2025 -0600
+
+    updated lstm
+
+[33mcommit 0c6491308647524fec19d89aac13cfbee3233a4e[m
+Merge: 08620c2 2ce36c4
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Thu Mar 6 16:18:32 2025 -0600
+
+    Merge branch 'main' of https://github.com/johnmelel/TimeSeries_AQI_Forecasting
+
+[33mcommit 08620c263988e6b1243937995bb6ab2fb4c0a9a2[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Thu Mar 6 16:18:25 2025 -0600
+
+    update with seasonality
+
+[33mcommit 2ce36c48fd0ae9b911461751703d2f9c37e9ad77[m
+Author: abhat09 <asbhat09@gmail.com>
+Date:   Thu Mar 6 12:54:34 2025 -0600
+
+    ETS Model
+
+[33mcommit 3811949cf05be69a6a54f40104f9bb10778788ee[m
+Author: abhat09 <asbhat09@gmail.com>
+Date:   Thu Mar 6 12:52:04 2025 -0600
+
+    ETS Model File
+
+[33mcommit 82acb925fa99518393ac333025caaf64334fa2c8[m
+Author: John Melel <84776601+johnmelel@users.noreply.github.com>
+Date:   Mon Mar 3 23:27:27 2025 -0600
+
+    Rename ARIMA:SARIMA.Rmd to ARIMA_SARIMA.Rmd
+
+[33mcommit 04792fc80ac7ba0b6981997900401a336d6aa320[m
+Author: codex83 <42984662+codex83@users.noreply.github.com>
+Date:   Mon Mar 3 19:42:13 2025 -0600
+
+    Add files via upload
+
+[33mcommit 2d6408d3ded929479a7108daf845b3a6497cda14[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Sat Mar 1 14:09:44 2025 -0600
+
+    added 2025 data upto feb end
+
+[33mcommit bff915f7b1fdb5a8ce0e3beee35f16e7611b1916[m
+Author: schaker01 <sara.chaker31@gmail.com>
+Date:   Thu Feb 27 16:07:54 2025 -0600
+
+    test
+
+[33mcommit ad3a0d9a9d2142ac6e2a0bff724c75047441a458[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Thu Feb 27 13:38:39 2025 -0600
+
+    added EDA
+
+[33mcommit 274ba578c2d5eab19d7c8b3996708a13d91be26e[m
+Author: John Melel <johnjojimelel@gmail.com>
+Date:   Thu Feb 27 10:15:51 2025 -0600
+
+    uploading data and a test lstm forcasting notebook
+
+[33mcommit 02be6de973e41dc862bada6454e68388a707c1ef[m
+Author: John Melel <84776601+johnmelel@users.noreply.github.com>
+Date:   Thu Feb 27 10:09:42 2025 -0600
+
+    Initial commit

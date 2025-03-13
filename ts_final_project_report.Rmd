@@ -308,3 +308,31 @@ METEO FRANCE, Institut national de l'environnement industriel et des risques (In
 
 Github Repository For Code Base:
 https://github.com/johnmelel/TimeSeries_AQI_Forecasting
+
+
+Member Contributions:
+
+Anusha - EDA, exponential smoothing models, coalescing final code R script, formatting final report RMD and coalescing individual member write-ups
+
+Sarah - EDA, BSTS models, data transformations
+
+Hritik - EDA, ARIMA/SARIMA/ARFIMA models
+
+John - EDA, LSTM models, made github repository, formatting final report RMD 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
