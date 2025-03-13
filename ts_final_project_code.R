@@ -1,6 +1,6 @@
 # Time Series Final Project: Forecasting London's AQI
 
-# Group: Anusha Bhat, Sarah Chaker, Hritik Jhaveri, John Melel
+# Group: Anusha Bhat, Sara Chaker, Hritik Jhaveri, John Melel
 # March 13, 2025
 
 # link to github for all files 
