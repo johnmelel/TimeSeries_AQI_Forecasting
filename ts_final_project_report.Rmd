@@ -230,9 +230,9 @@ knitr::include_graphics("ETS_Anusha/forecast.png")
 
 A Bayesian Structural Time Series (BSTS) model is a state-space approach particularly useful for handling noisy data and missing values. It consists of multiple components that capture long-term trends, account for seasonality, manage residual noise, and incorporate external covariates. Due to its Bayesian framework, the model integrates prior knowledge into its predictions and employs Markov Chain Monte Carlo (MCMC) methods to estimate parameter distributions. Its ability to model complex time series structures makes BSTS a powerful tool for both predictive analytics and causal inference. The BSTS model is particularly apt for forecasting Daily Air Quality Index (AQI) due to its ability to handle uncertainty and model complex temporal patterns.
 
-The BSTS model is particularly well-suited for forecasting the Daily Air Quality Index (AQI) due to its ability to handle uncertainty and model complex temporal patterns. It effectively captures long-term trends and seasonality in air pollution levels, which are influenced by factors such as regulatory changes, weather patterns, and traffic emissions. By explicitly modeling these components, BSTS enhances AQI forecasting by accurately capturing recurring patterns over time. Additionally, the model is highly effective at handling noisy and missing data, which is common in air quality data due to fluctuations in environmental conditions, sensor inaccuracies, and missing observations. Operating within a state-space framework, BSTS provides robust estimation and improved forecast reliability, even with incomplete or irregular data. A major advantage of BSTS is its Bayesian inference approach, which integrates prior knowledge and continuously updates forecasts as new data becomes available, ensuring that the model adapts to evolving environmental patterns and improves over time.
+The BSTS model is particularly well-suited for forecasting the Daily Air Quality Index (AQI) due to its ability to handle uncertainty and model complex temporal patterns. It effectively captures long-term trends and seasonality in air pollution levels, which are influenced by factors such as regulatory changes, weather patterns, and traffic emissions. By explicitly modeling these components, BSTS enhances AQI forecasting by accurately capturing recurring patterns over time. Additionally, the model is highly effective at handling noisy and missing data, which is common in air quality data due to fluctuations in environmental conditions, sensor inaccuracies, and missing observations. Operating within a state-space framework, BSTS provides robust estimation and improved forecast reliability, even with incomplete or irregular data. A major advantage of BSTS is its Bayesian inference approach, which integrates prior knowledge and continuously updates forecasts as new data becomes available, ensuring that the model adapts to evolving environmental patterns and improves over time. However, it is worth noting that this model can be resource-intensive, making real-time forecasting more challenging. Additionally, while incorporating external covariates to enhance its predictions, an excessive number of weakly correlated variables may introduce noise and reduce the model’s performance. Therefore, despite the many advantages for using this model for forecasting AQI, there are some trade-offs that should be considered. 
 
-We developed 6 different models for comparison, 3 of the models use the transformed data previously mentioned, and the remaining 3 add an aditional AR component to account for the autocorrelations in the time series. 
+We developed 6 different models for comparison, 3 of the models use the transformed data previously mentioned, and the remaining 3 add an additional AR component to account for the autocorrelations in the time series. For all six models, a local linear trend and multiple seasonal components (weekly, monthly, and yearly) were included to capture both long-term trends and short-term dependencies in the time series. The local linear trend allows for smooth variations over time, while the seasonal terms account for recurring patterns in AQI at different time scales, ensuring a comprehensive time series representation. For models with an autoregressive (AR) component, an additional step was included in the state-space model to add the respective AR component (2 or 5).
 
 The assumptions for the model include that the residual term follows a Gaussian distribution, ensuring that the errors are normally distributed. Additionally, it is assumed that the relationship between the covariates and the target time series remains stable over time. The residual noise is also expected to be independent over time, without exhibiting autocorrelation, meaning the errors from one time point should not be related to those from another. Finally, it is assumed that the time series can be decomposed into additive components, such as trend, seasonality, and residuals, which allows for a more straightforward analysis and forecasting of the data.
 
@@ -296,7 +296,12 @@ knitr::kable(rmse_data,
 
 The accuracy metric for the first-differencing model with AR(5) indicates poor predictive performance, as evidenced by the high RMSE value, which suggests a poor fit. Similarly, the accuracy metrics for the differenced Box-Cox model with AR(2) are comparable to the Box-Cox transformed model, also reflecting poor predictive performance and a poor fit due to the high RMSE. These elevated error values indicate that both models fail to effectively capture the underlying patterns in the data. In contrast, the accuracy metric for the seasonally differenced model is still relatively high, but noticeably lower than the previous models, implying some improvement in predictive performance. Finally, the seasonally differenced model with AR(5) achieves a moderate level of accuracy and registers the lowest error value among all six models tested, suggesting that incorporating an autoregressive autoregressive component alongside seasonal differencing has positively impacted the model's forecasting accuracy.
 
-Among the six models evaluated, the BSTS with seasonal differencing with AR(5) component was the best-performing model. This specific data transformation met the assumption of the BSTS model, ensuring that the residuals were uncorrelated. It also achieved the lowest error metrics, although the metrics were still relatively high, indicating that the model does not accurately capture the underlying patterns in the data.
+Among the six models evaluated, the BSTS with seasonal differencing with AR(5) component was the best-performing model. This specific data transformation met the assumption of the BSTS model, ensuring that the residuals were uncorrelated. It also achieved the lowest error metrics, although the metrics were still relatively high, indicating that the model does not accurately capture the underlying patterns in the data. The forecast of this model is presented below. 
+
+
+```{r}
+knitr::include_graphics("BSTS_SC/bsts_seasonal_ar_forecast.png")
+```
 
 
 ## 3.4 LSTM
@@ -342,13 +347,18 @@ From the initial set of models, it was observed that ARFIMA outperformed both SA
 Ultimately, the LSTM model significantly outperformed all other models, with the lowest RMSE of 10.20. This is expected, as it is the most complex model across the four sets. With its high forecasting accuracy, this model is ideal for stakeholders to monitor AQI and implement intervention practices to reduce pollution, raise awareness of air quality hazards, and promote environmental safety.
 
 
+
 # 5. Discussion
 
 In this project we aimed to forecast the daily air quality index (AQI) in London using a public dataset spanning over ten years. We followed a methodological approach and evaluated four different time series models to determine the most effective forecasting method– (1) Seasonal Autoregressive Integrated Moving Average (SARIMA), (2) Exponential Smoothing (ETS), (3) Bayesian Structural Time Series (BSTS), and (4) Long Short-Term Memory (LSTM).
 
 Among these four types of models, the LSTM model outperforms all, achieving the lowest Root Mean Squared Error (RMSE) of 10.25, indicating high predictive accuracy. As LSTM is a neural network and the most advanced model evaluated, this result indicates that deep learning models are particularly effective for forecasting AQI, especially when long-term dependencies and non-linear patterns are present. While traditional models like SARIMA and ETS provided reasonable forecasts, their limitations in handling irregular variations highlighted the advantage of neural networks. These findings not only confirm that our objective of accurate AQI forecasting was successfully met, but also underscores the importance of selecting models that align with the complexity of the data.
 
-To improve upon this work, future efforts could focus on hyperparameter tuning for the LSTM model to optimize its architecture and further reduce forecasting errors. Additionally, incorporating external variables such as weather conditions, traffic data, and pollutant sources may enhance predictive accuracy by capturing additional AQI influences. Furthermore, considering the incorporation of real-time forecasting could enhance the model's applicability for AQI monitoring and policy interventions. 
+Despite these results, there are several limitations worth noting and addressing. With additional time and computational resources, further hyperparameter tuning of the LSTM model—such as adjustments to the number of layers, learning rate, and batch size—could enhance both predictive performance and stability. Additionally, expanding the dataset to include data from other global cities could improve the model’s ability to generalize across different pollution patterns and seasonal fluctuations.
+
+To further improve upon this work, future efforts could focus on hyperparameter tuning for the LSTM model to optimize its architecture and further reduce forecasting errors. Additionally, incorporating external variables such as weather conditions, traffic data, and pollutant sources may enhance predictive accuracy by capturing additional AQI influences. Furthermore, considering the incorporation of real-time forecasting could enhance the model's applicability for AQI monitoring and policy interventions.
+
+By addressing these limitations and expanding the scope of the study, future research can refine AQI forecasting models to provide even more accurate and actionable insights, ultimately aiding policymakers and environmental agencies in mitigating air pollution.
 
 
 # 6. Appendix
@@ -364,13 +374,13 @@ https://github.com/johnmelel/TimeSeries_AQI_Forecasting
 
 Member Contributions:
 
-Anusha - EDA, exponential smoothing models, coalescing final code R script, formatting final report RMD, and coalescing individual member write-ups
+Anusha - EDA, exponential smoothing models, coalescing final code R script, formatting final report RMD, and coalescing individual member write-ups.
 
-Sarah - EDA, BSTS models, data transformations
+Sara - EDA, BSTS models, data transformations, discussion.
 
-Hritik - EDA, ARIMA/SARIMA/ARFIMA models
+Hritik - EDA, ARIMA/SARIMA/ARFIMA models.
 
-John - EDA, LSTM models, made github repository, formatting final report RMD 
+John - EDA, LSTM models, made github repository, formatting final report RMD.
 
 
 
