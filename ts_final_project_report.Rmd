@@ -29,7 +29,7 @@ The data used for this project is sourced from Open-Meteo, an open-source weathe
 
 # 2. Data 
 
-The AQI measurements are recorded at an hourly frequency. Initially, there were a few missing values causing minor gaps in the time series. To remedy this, we applied linear interpolation to estimate and fill in the missing hour values using appropriate past values. After this, we aggregated the hour values to obtain daily AQI readings, which is the final data that we create our forecasting models with. AQI values range from 17 to 155, with a median of 43. As mentioned previously, the data ranges over approximately 12 years. For our models, we used the data from January 2, 2013 - December 31, 2024 as our training set, and tested on data from January 1, 2025 - February 28, 2025.
+The AQI measurements are recorded at an hourly frequency. Initially, there were a few missing values causing minor gaps in the time series. To remedy this, we applied linear interpolation to estimate and fill in the missing hour values using values before and after the missing value, since we can assume for a given day the AQI values change slowly. After this, we aggregated the hour values to obtain daily AQI readings, which is the final data that we create our forecasting models with. AQI values range from 17 to 155, with a median of 43. As mentioned previously, the data ranges over approximately 12 years. For our models, we used the data from January 2, 2013 - December 31, 2024 as our training set, and tested on data from January 1, 2025 - February 28, 2025.
 
 
 ## 2.2 Elementary Data Analysis
@@ -157,6 +157,8 @@ The forecast plot shows projected values for the next period with confidence int
 
 Despite ARFIMA’s relatively better performance, the overall analysis indicates that key model assumptions are violated for all models. The ACF plots highlight significant autocorrelation in SARIMA residuals, contradicting the assumption of white noise errors. The residual vs. fitted plots suggest heteroscedasticity, further undermining the validity of these models. Given these violations, it is evident that none of these models provide a perfect fit, and further refinements—such as incorporating alternative differencing methods or hybrid modeling approaches—are needed to improve predictive accuracy.
 
+The ARFIMA/ARIMA/SARIMA models simpler models which are easy to interpret, however the trade-off is at the cost of not capturing all underlying time series patterns.
+
 
 ## 3.2 ETS, Holt Winters
 
@@ -224,6 +226,7 @@ The Holt-Winters model caused the seasonal and first-order differenced models to
 knitr::include_graphics("ETS_AB/forecast.png")
 ```
 
+The ETS/Holt Winters models basically smoothens the historic data to make a prediction, so the trade-off is that it is not necessary good at  predicting sudden changes (sudden AQI change during wildfires etc), and it tends to overfit for our data.
 
 ## 3.3 BSTS
 
@@ -303,9 +306,11 @@ knitr::include_graphics("BSTS_SC/bsts_seasonal_ar_forecast.png")
 ```
 
 
+The BSTS model shows promising results, but the trade-off is that the model is computationally heavy in order to properly capture the complexity. 
+
 ## 3.4 LSTM
 
-For our final model, we used LSTM on as it outperforms traditional models for complex, nonlinear time series data, especially when long-term dependencies exist. We created a stacked model with double layer LSTM for learning the differenced data and two dense layers for predicting output, and our sequence window was for 60 days. The data was also scaled using Min-Max Scaling for consistency. The model was trained for 5 epochs and, overall, gave great predictions with relatively low RMSE. Since the model is capable of capturing trends and long-term dependencies in the data, we felt that it was sufficient to only construct this model on the differenced data.
+For our final model, we used LSTM on as it outperforms traditional models for complex, nonlinear time series data, especially when long-term dependencies exist. We created a stacked model with double layer LSTM for learning the AQI data and two dense layers for predicting output, and our sequence window was for 60 days. The data was also scaled using Min-Max Scaling for consistency. The model was trained for 5 epochs and, overall, gave great predictions with relatively low RMSE. Since the model is capable of capturing trends and long-term dependencies in the data, we felt that it was sufficient to only construct this model on the actual data.
 
 
 ```{r, echo=FALSE}
@@ -318,11 +323,11 @@ knitr::include_graphics("Final figures/lstm_resid.png")
 
 As observed, the forecasted values closely follow the trend line of the data with a slight right shift. The prediction residuals are non-correlated with a mean around 0, further supporting that this is a good model. 
 
-This model assumes that the data has sequential long-term dependencies, a stationary time series, sufficient data size, non-linearity, and no strong autocorrelations, constant variance, and zero-mean in the residuals. All of these assumptions are satisfied since we have seasonal data indicating long-term dependencies, our data is differenced to make it stationary, we have 12 years worth of training data, there is a non-linear pattern in the time series, and the errors are uncorrelated with zero mean and homoscedasticity. Since no assumptions are violated, this model a good fit for the differenced data. 
+Unlike ARMA and ARIMA, there are no assumptions required whatsoever when performing time series modeling with Neural Networks. This is because Neural Networks are universal approximators, and with a deep and wide enough architecture, they can approximate any arbitrary function. 
 
-The Naïve Persistence base model simply assumes tomorrow's AQI value to be the same as today's AQI. We can use this as a reference for our LSTM model. The Naïve model has a test RMSE of 10.6, while the LSTM has an RMSE of 10.20. This RMSE highlights that the LSTM model performs better than simpler models, as expected.
+The Naïve Persistence base model simply assumes tomorrow's AQI value to be the same as today's AQI. We can use this as a reference for our LSTM model. The Naïve model has a test RMSE of 10.6, while the LSTM has an RMSE of 10.2. This RMSE highlights that the LSTM model performs better than simpler models, as expected.
 
-
+The LSTM model performs the best, but the trade-off is that the model is slightly computationally heavy, and since it is a neural network, it does not have any interpretability.
 
 # 4. Results 
 
@@ -343,9 +348,9 @@ We constructed a total of 28 models by applying first-order differencing, Box-Co
 
 From the initial set of models, it was observed that ARFIMA outperformed both SARIMA and ARIMA, which exhibited similar performance. In particualy, the first-order differenced ARFIMA performed the best from this set. Additionally, general exponential smoothing (ETS) models performed better than the Holt-Winters models for first-order differencing and seasonal differencing, while the Box-Cox Holt-Winters models outperformed the rest. The best model in the second set, the first-order differenced ETS, performed slightly better than the first-order differenced ARFIMA model, having an RMSE slightly smaller by 1. However, despite the low to moderate RMSE values and their applicability to the forecasting scenario, none of the models in the first and second sets satisfied the assumption of uncorrelated errors. Therefore, these models cannot be considered well-performing even if they have lower RMSEs than the BSTS models. In the third set, the seasonally differenced model with AR(5) outperformed the other BSTS models. While the first-order differenced model showed a lower test RMSE, it was disregarded as the best-performing model due to its violation of the uncorrelated errors assumption.
 
-Ultimately, the LSTM model significantly outperformed all other models, with the lowest RMSE of 10.20. This is expected, as it is the most complex model across the four sets. With its high forecasting accuracy, this model is ideal for stakeholders to monitor AQI and implement intervention practices to reduce pollution, raise awareness of air quality hazards, and promote environmental safety.
+Ultimately, the LSTM model significantly outperformed all other models, with the lowest RMSE of 10.2. This is expected, as it is the most complex model across the four sets. With its high forecasting accuracy, this model is ideal for stakeholders to monitor AQI and implement intervention practices to reduce pollution, raise awareness of air quality hazards, and promote environmental safety.
 
-
+With more time and data, model accuracy could improve, especially since AQI trends are closely linked to climate change, making recent data more relevant for forecasting. Reducing noise from interpolated values and possibly retaining the hourly component could further refine predictions, though its impact on model performance would need evaluation.
 
 # 5. Discussion
 
@@ -379,7 +384,7 @@ Sara - EDA, BSTS models, data transformations, discussion.
 
 Hritik - EDA, ARIMA/SARIMA/ARFIMA models.
 
-John - EDA, LSTM models, made github repository, formatting final report RMD.
+John - EDA, LSTM models, made github repository, github readme, formatting final report RMD.
 
 
 
