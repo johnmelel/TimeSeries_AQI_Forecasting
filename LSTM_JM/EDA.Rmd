@@ -45,7 +45,7 @@ plot(decomposed)
 aqi_ts <- ts(dailyaqi$USAQI, frequency = 365)
 # test for stationarity
 adf.test(aqi_ts)  # stationary
-kpss.test(aqi_ts) # stationary
+kpss.test(aqi_ts) # not stationary
 ```
 
 
