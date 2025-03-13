@@ -76,6 +76,40 @@ METEO FRANCE, Institut national de l'environnement industriel et des risques (In
 
 ## 3.3 BSTS
 
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::include_graphics("BSTS_SC/BSTS_bc_acf.png")
+```
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::include_graphics("BSTS_SC/BSTS_bc_ar_acf.png")
+```
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::include_graphics("BSTS_SC/bsts_diff_acf.png")
+```
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::include_graphics("BSTS_SC/bsts_diff_ar.png")
+```
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::include_graphics("BSTS_SC/bsts_season_acf.png")
+```
+
+```{r, echo=FALSE}
+library(knitr)
+knitr::include_graphics("BSTS_SC/bsts_season_ar.png")
+```
+
+
+
+
 ## 3.4 LSTM
 We used LSTM because it outperforms traditional models for complex, nonlinear time series data, especially when long-term dependencies exist. We created a stacked model with double layer LSTM for learning timeseries data and two dense layers for predicting output, and our sequence window was for 60 days. The model was trained for 5 epochs and gave great predictions.
 
