@@ -10,6 +10,7 @@ fontsize: 12pt
 ---
 
 ```{r setup, include=FALSE, messages = FALSE, warnings = FALSE}
+library(knitr)
 knitr::opts_chunk$set(echo = FALSE, warnings = FALSE, messages = FALSE)
 ```
 
@@ -32,21 +33,18 @@ The AQI measurements are recorded at an hourly frequency, and few minor gaps in 
 
 The AQI plot for London from 2013 to 2025.
 ```{r, echo=FALSE}
-library(knitr)
 knitr::include_graphics("aqi_plot.png")
 ```
 
 ACF Plot: The ACF plot indicates some autocorrelation.
 
-```{r, echo=FALSE}
-library(knitr)
+```{r, echo=FALSE, fig.width=3, fig.height=2}
 knitr::include_graphics("acf.png")
 ```
 
 PACF Plot: The PACF plot indicates some autocorrelation.
 
 ```{r, echo=FALSE}
-library(knitr)
 knitr::include_graphics("pacf.png")
 ```
 
@@ -54,7 +52,6 @@ STL Decomposition:
 The STL decomposition shows clear trends and some yearly seasonality.
 
 ```{r, echo=FALSE}
-library(knitr)
 knitr::include_graphics("stl.png")
 ```
 
@@ -78,32 +75,26 @@ METEO FRANCE, Institut national de l'environnement industriel et des risques (In
 
 
 ```{r, echo=FALSE}
-library(knitr)
 knitr::include_graphics("BSTS_SC/BSTS_bc_acf.png")
 ```
 
 ```{r, echo=FALSE}
-library(knitr)
 knitr::include_graphics("BSTS_SC/BSTS_bc_ar_acf.png")
 ```
 
 ```{r, echo=FALSE}
-library(knitr)
 knitr::include_graphics("BSTS_SC/bsts_diff_acf.png")
 ```
 
 ```{r, echo=FALSE}
-library(knitr)
 knitr::include_graphics("BSTS_SC/bsts_diff_ar.png")
 ```
 
 ```{r, echo=FALSE}
-library(knitr)
 knitr::include_graphics("BSTS_SC/bsts_season_acf.png")
 ```
 
 ```{r, echo=FALSE}
-library(knitr)
 knitr::include_graphics("BSTS_SC/bsts_season_ar.png")
 ```
 
@@ -115,14 +106,12 @@ We used LSTM because it outperforms traditional models for complex, nonlinear ti
 
 
 ```{r, echo=FALSE}
-library(knitr)
 knitr::include_graphics("lstm_plot.png")
 ```
 
 The prediction residuals are non-correlated, which also indicates that it is a good model. 
 
 ```{r, echo=FALSE}
-library(knitr)
 knitr::include_graphics("lstm_resid.png")
 ```
 
