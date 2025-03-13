@@ -63,7 +63,3 @@ We implemented and evaluated the following models:
 If you use this work, please cite:  
 > Bhat, Melel, Chaker, Jhaveri (2025). *Forecasting Air Quality Index in London*.
 
----
-
-This README provides a clear and structured summary of your project. Let me know if you need any modifications! 🚀
-
