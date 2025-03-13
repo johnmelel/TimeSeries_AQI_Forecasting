@@ -9,7 +9,6 @@ library(lmtest)
 library(bsts)
 library(Boom)
 library(parallel)
-install.packages("ldsr")
 library(ldsr)
 
 
@@ -193,7 +192,6 @@ acf(residuals_bsts_diff[1:5000])
 
 # forecast the next 59 days (Jan 2025 - Feb 2025)
 burn_diff <- SuggestBurn(0.1, model_diff)
-
 pred_diff <- predict(model_diff, horizon = 59, burn = burn_diff, quantiles = c(.025, .975))
 
 
@@ -239,7 +237,6 @@ acf(residuals_bsts_diff_ar[1:5000])
 
 # forecast the next 59 days (Jan 2025 - Feb 2025)
 burn_diff_ar <- SuggestBurn(0.1, model_diff_ar)
-
 pred_diff_ar <- predict(model_diff_ar, burn = burn_diff_ar, horizon = 59)
 
 
@@ -391,7 +388,7 @@ pred_season <- predict(model_season, burn = burn_season, horizon = 59)
 actual_values <- test_data$USAQI
 
 # Reverse seasonal differencing
-forecast_values_season <- c(tail(train_data$USAQI, 365), tail(train_data$USAQI, 1) + cumsum(pred_diff$mean))[-(1:365)]
+forecast_values_season <- (aqi_train_ts[(length(aqi_train_ts) - 365 + 1):(length(aqi_train_ts) - 365 + 59)]) + pred_season$mean
 
 rmse <- sqrt(mean((actual_values - forecast_values_season)^2))
 mae  <- mean(abs(actual_values - forecast_values_season))
@@ -427,7 +424,8 @@ acf(residuals_bsts_season_ar[1:5000])
 
 
 # forecast the next 59 days (Jan 2025 - Feb 2025)
-pred_season_ar <- predict(model_season_ar, horizon = 59)
+burn_season_ar <- SuggestBurn(0.1, model_season_ar)
+pred_season_ar <- predict(model_season_ar, burn = burn_season_ar, horizon = 59)
 
 
 # Accuracy metrics 
@@ -435,7 +433,8 @@ pred_season_ar <- predict(model_season_ar, horizon = 59)
 actual_values <- test_data$USAQI
 
 # Reverse seasonal differencing
-forecast_values_season_ar <- c(tail(train_data$USAQI, 365), tail(train_data$USAQI, 1) + cumsum(pred_season_ar$mean))[-(1:365)]
+forecast_values_season_ar <- (aqi_train_ts[(length(aqi_train_ts) - 365 + 1):(length(aqi_train_ts) - 365 + 59)]) + pred_season_ar$mean
+
 
 rmse <- sqrt(mean((actual_values - forecast_values_season_ar)^2))
 mae  <- mean(abs(actual_values - forecast_values_season_ar))
@@ -446,4 +445,5 @@ cat("MAE for Seasonal Differencing w/ AR(5): ", mae, "\n")
 cat("MAPE for Seasonal Differencing w/ AR(5):", mape, "%\n")
 
 #####
+
 

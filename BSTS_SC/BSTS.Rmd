@@ -62,7 +62,6 @@ The tests for stationarity are conflicting. The Augmented Dicky-Fuller test has 
 We conducted 4 different transformations (first-order differencing, box-cox transformation, log-transformation, and seasonal differencing) and tested each transformations for stationarity and autocorrelation.
 
 ```{r, eval=FALSE}
-
 #### apply first-order differencing ####
 diff_aqi <- diff(aqi_ts, differences = 1)
 
@@ -71,7 +70,6 @@ adf.test(diff_aqi)  # stationary
 kpss.test(diff_aqi) # stationary
 acf(diff_aqi)
 pacf(diff_aqi)
-
 
 #### apply box-cox transformation ####
 lambda <- BoxCox.lambda(aqi_ts)
@@ -82,7 +80,6 @@ adf.test(boxcox_aqi)  # stationary
 kpss.test(boxcox_aqi) # non-stationary
 acf(boxcox_aqi)
 pacf(boxcox_aqi)
-
 
 #### apply differenced box-cox transformation ####
 lambda <- BoxCox.lambda(aqi_ts)
@@ -96,7 +93,6 @@ kpss.test(diff_boxcox_aqi) # stationary
 acf(diff_boxcox_aqi)
 pacf(diff_boxcox_aqi)
 
-
 #### apply log-transformation ####
 log_aqi <- log(aqi_ts)
 
@@ -105,7 +101,6 @@ adf.test(log_aqi)  # stationary
 kpss.test(log_aqi)  # non-stationary
 acf(log_aqi)
 pacf(log_aqi)
-
 
 #### apply seasonal differencing ####
 seasonal_aqi <- diff(aqi_ts, lag = 365)
@@ -122,7 +117,6 @@ Based on the ACF plots and tests for stationarity, first-order differencing, dif
 To determine the best AR component to use, we then ran an auto.arima on each of the three transformations.
 
 ```{r, eval=FALSE}
-
 best_model <- auto.arima(diff_aqi)
 summary(best_model)
 checkresiduals(best_model)
@@ -134,7 +128,6 @@ checkresiduals(best_model_seasonal)
 best_model_boxcox <- auto.arima(diff_boxcox_aqi)
 summary(best_model_boxcox)
 checkresiduals(best_model_boxcox)
-
 ```
 
 Based on the auto.arima for each of the three transformations, an AR(5) for both the differenced and seasonally differences transformations was the best model. For the differenced box-cox transformation, an AR(2) was the best model. Therefore, these AR components will be used in the respective transformations.
@@ -146,10 +139,8 @@ Based on the auto.arima for each of the three transformations, an AR(5) for both
 The data was split into train and test datasets. The train dataset included over 10 years of data from 01-02-2013 to 12-31-2024. The test dataset then included the most recent AQI data for 2025, 01-01-2025 to 02-28-2025. These datasets were then turned into time series. The train and test time series were then transformed according to the three types chosen from above (first-order differencing, differenced box-cox, seasonal differencing).
 
 ```{r, eval=FALSE}
-
 train_data <- subset(dailyaqi, Date < as.Date("2025-1-01"))
 test_data  <- subset(dailyaqi, Date >= as.Date("2025-1-01"))
-
 
 aqi_train_ts <- ts(train_data$USAQI, frequency = 365, start = c(2013, 1))
 aqi_test_ts  <- ts(test_data$USAQI, frequency = 365, start = c(2025, 1))
@@ -178,7 +169,6 @@ Six different models were run with the respective transformations and auto-regre
 1.  BSTS with First-order Differencing
 
 ```{r, eval=FALSE}
-
 ss_diff <- list()
 ss_diff <- AddLocalLinearTrend(ss_diff, y = diff_train)
 ss_diff <- AddSeasonal(ss_diff, y = diff_train, nseasons = 7, season.duration = 1)   # weekly
@@ -198,15 +188,11 @@ residuals_bsts_diff <- as.numeric(residuals(model_diff))
 plot(residuals_bsts_diff, main = "BSTS Residuals", ylab = "Residuals", xlab = "Time")
 acf(residuals_bsts_diff[1:5000])
 
-
 # forecast the next 59 days (Jan 2025 - Feb 2025)
 burn_diff <- SuggestBurn(0.1, model_diff)
-
 pred_diff <- predict(model_diff, horizon = 59, burn = burn_diff, quantiles = c(.025, .975))
 
-
 # Accuracy metrics 
-
 actual_values <- test_data$USAQI
 
 # Reverse differencing
@@ -219,14 +205,11 @@ mape <- mean(abs((actual_values - forecast_values_diff) / actual_values)) * 100
 cat("RMSE for 1st order Differencing:", rmse, "\n")
 cat("MAE for 1st order Differencing: ", mae, "\n")
 cat("MAPE for 1st order Differencing:", mape, "%\n")
-
-
 ```
 
 2.  BSTS with First-order Differencing with AR(5) Component
 
 ```{r, eval=FALSE}
-
 ss_diff_ar <- list()
 ss_diff_ar <- AddLocalLinearTrend(ss_diff_ar, y = diff_train)
 ss_diff_ar <- AddAr(lags = 5, y = diff_train, state.specification = ss_diff_ar)
@@ -247,19 +230,16 @@ residuals_bsts_diff_ar <- as.numeric(residuals(model_diff_ar))
 plot(residuals_bsts_diff_ar, main = "BSTS Residuals", ylab = "Residuals", xlab = "Time")
 acf(residuals_bsts_diff_ar[1:5000])
 
-
 # forecast the next 59 days (Jan 2025 - Feb 2025)
 burn_diff_ar <- SuggestBurn(0.1, model_diff_ar)
-
 pred_diff_ar <- predict(model_diff_ar, burn = burn_diff_ar, horizon = 59)
 
 
 # Accuracy metrics 
-
 actual_values <- test_data$USAQI
 
 # Revert differencing by adding the last known actual AQI value
-forecast_values_diff_ar <- cumsum(c(tail(train_data$USAQI, 1), pred_diff_ar$mean))[-1] 
+forecast_values_diff_ar <- cumsum(c(tail(train_data$USAQI, 1), pred_diff_ar$mean))[-1]
 
 rmse <- sqrt(mean((actual_values - forecast_values_diff_ar)^2))
 mae  <- mean(abs(actual_values - forecast_values_diff_ar))
@@ -268,13 +248,11 @@ mape <- mean(abs((actual_values - forecast_values_diff_ar) / actual_values)) * 1
 cat("RMSE for 1st order Differencing w/ AR(5):", rmse, "\n")
 cat("MAE for 1st order Differencing w/ AR(5): ", mae, "\n")
 cat("MAPE for 1st order Differencing w/ AR(5):", mape, "%\n")
-
 ```
 
 3.  BSTS with Differenced Box-Cox Transformation
 
 ```{r, eval=FALSE}
-
 ss_bc <- list()
 ss_bc <- AddLocalLinearTrend(ss_bc, y = diff_boxcox_train)
 ss_bc <- AddSeasonal(ss_bc, y = diff_boxcox_train, nseasons = 7, season.duration = 1)   # weekly
@@ -294,39 +272,37 @@ residuals_bsts_bc <- as.numeric(residuals(model_bc))
 plot(residuals_bsts_bc, main = "BSTS Residuals", ylab = "Residuals", xlab = "Time")
 acf(residuals_bsts_bc[1:5000])
 
-
 # forecast the next 59 days (Jan 2025 - Feb 2025)
-pred_bc <- predict(model_bc, horizon = 59)
-
+burn_bc <- SuggestBurn(0.1, model_bc)
+pred_bc <- predict(model_bc, burn = burn_bc, horizon = 59)
 
 # Accuracy metrics 
 actual_values <- test_data$USAQI
 
 # reverse differencing and box-cox 
-forecast_values_bc <- cumsum(c(tail(train_data$USAQI, 1), pred_bc$mean))[-1] 
-forecast_values_real <- inv_boxcox(forecast_values_bc, lambda = (BoxCox.lambda(aqi_train_ts)))
+lambda_value <- BoxCox.lambda(aqi_train_ts)
+forecast_values_bc <- cumsum(c(tail(train_data$USAQI, 1), pred_bc$mean))[-1]
+# have to shift values to ensure positive values since some values in (forecast_values_bc * lambda_value + 1) are negative, causing the exponentiation to fail. 
+forecast_values_real1 <- ((forecast_values_bc - min(forecast_values_bc) + 1) * lambda_value + 1)^(1/lambda_value)
 
-rmse <- sqrt(mean((actual_values - forecast_values_real)^2))
-mae  <- mean(abs(actual_values - forecast_values_real))
-mape <- mean(abs((actual_values - forecast_values_real) / actual_values)) * 100
+rmse <- sqrt(mean((actual_values - forecast_values_real1)^2))
+mae  <- mean(abs(actual_values - forecast_values_real1))
+mape <- mean(abs((actual_values - forecast_values_real1) / actual_values)) * 100
 
 cat("RMSE for BC transformation:", rmse, "\n")
 cat("MAE for BC transformation: ", mae, "\n")
 cat("MAPE for BC transformation:", mape, "%\n")
-
-
 ```
 
 4.  BSTS with Differenced Box-Cox Transformation with AR(2) Component
 
 ```{r, eval=FALSE}
-
 ss_bc_ar <- list()
 ss_bc_ar <- AddLocalLinearTrend(ss_bc_ar, y = diff_boxcox_train)
 ss_bc_ar <- AddAr(lags = 2, y = diff_boxcox_train, state.specification = ss_bc_ar)
 ss_bc_ar <- AddSeasonal(ss_bc_ar, y = diff_boxcox_train, nseasons = 7, season.duration = 1)   # weekly
-ss_bc_ar <- AddSeasonal(ss_bc_ar, y = diff_boxcox_train, nseasons = 30, season.duration = 1)  # monthly 
-ss_bc_ar <- AddSeasonal(ss_bc_ar, y = diff_boxcox_train, nseasons = 365, season.duration = 1)  # yearly
+ss_bc_ar <- AddSeasonal(ss_bc_ar, y = diff_boxcox_train, nseasons = 30, season.duration = 1)  #monthly
+ss_bc_ar <- AddSeasonal(ss_bc_ar, y = diff_boxcox_train, nseasons = 365, season.duration = 1)  #yearly
 
 # run model with parallel processing to fix crashing 
 options(mc.cores = parallel::detectCores() - 4) # use 10 cores
@@ -341,26 +317,26 @@ residuals_bsts_bc_ar <- as.numeric(residuals(model_bc_ar))
 plot(residuals_bsts_bc_ar, main = "BSTS Residuals", ylab = "Residuals", xlab = "Time")
 acf(residuals_bsts_bc_ar[1:5000])
 
-
 # forecast the next 59 days (Jan 2025 - Feb 2025)
-pred_bc_ar <- predict(model_bc_ar, horizon = 59)
-
+burn_bc_ar <- SuggestBurn(0.1, model_bc_ar)
+pred_bc_ar <- predict(model_bc_ar, burn = burn_bc_ar, horizon = 59)
 
 # Accuracy metrics 
 actual_values <- test_data$USAQI
 
 # reverse differencing and box-cox 
-forecast_values_bc_ar <- cumsum(c(tail(train_data$USAQI, 1), pred_bc_ar$mean))[-1] 
-forecast_values_real_ar <- inv_boxcox(forecast_values_bc_ar, lambda = (BoxCox.lambda(aqi_train_ts)))
+lambda_value <- BoxCox.lambda(aqi_train_ts)
+forecast_values_bc_ar <- cumsum(c(tail(train_data$USAQI, 1), pred_bc_ar$mean))[-1]
+# have to shift values to ensure positive values since some values in (forecast_values_bc * lambda_value + 1) are negative, causing the exponentiation to fail. 
+forecast_values_realar <- ((forecast_values_bc_ar - min(forecast_values_bc_ar) + 1) * lambda_value + 1)^(1/lambda_value)
 
-rmse <- sqrt(mean((actual_values - forecast_values_real_ar)^2))
-mae  <- mean(abs(actual_values - forecast_values_real_ar))
-mape <- mean(abs((actual_values - forecast_values_real_ar) / actual_values)) * 100
+rmse <- sqrt(mean((actual_values - forecast_values_realar)^2))
+mae  <- mean(abs(actual_values - forecast_values_realar))
+mape <- mean(abs((actual_values - forecast_values_realar) / actual_values)) * 100
 
 cat("RMSE for BC AR(2):", rmse, "\n")
 cat("MAE for BC AR(2): ", mae, "\n")
 cat("MAPE for BC AR(2):", mape, "%\n")
-
 ```
 
 5.  BSTS with Seasonal Differencing
@@ -369,7 +345,7 @@ cat("MAPE for BC AR(2):", mape, "%\n")
 ss_season <- list()
 ss_season <- AddLocalLinearTrend(ss_season, y = seasonal_train)
 ss_season <- AddSeasonal(ss_season, y = seasonal_train, nseasons = 7, season.duration = 1)   # weekly
-ss_season <- AddSeasonal(ss_season, y = seasonal_train, nseasons = 30, season.duration = 1)  # monthly 
+ss_season <- AddSeasonal(ss_season, y = seasonal_train, nseasons = 30, season.duration = 1)  # monthly
 ss_season <- AddSeasonal(ss_season, y = seasonal_train, nseasons = 365, season.duration = 1)  # yearly
 
 # run model with parallel processing to fix crashing 
@@ -385,17 +361,15 @@ residuals_bsts_season <- as.numeric(residuals(model_season))
 plot(residuals_bsts_season, main = "BSTS Residuals", ylab = "Residuals", xlab = "Time")
 acf(residuals_bsts_season[1:5000])
 
-
 # forecast the next 59 days (Jan 2025 - Feb 2025)
-pred_season <- predict(model_season, horizon = 59)
-
+burn_season <- SuggestBurn(0.1, model_season)
+pred_season <- predict(model_season, burn = burn_season, horizon = 59)
 
 # Accuracy metrics 
-
 actual_values <- test_data$USAQI
 
 # Reverse seasonal differencing
-forecast_values_season <- c(tail(train_data$USAQI, 365), tail(train_data$USAQI, 1) + cumsum(pred_diff$mean))[-(1:365)]
+forecast_values_season <- (aqi_train_ts[(length(aqi_train_ts) - 365 + 1):(length(aqi_train_ts) - 365 + 59)]) + pred_season$mean
 
 rmse <- sqrt(mean((actual_values - forecast_values_season)^2))
 mae  <- mean(abs(actual_values - forecast_values_season))
@@ -404,7 +378,6 @@ mape <- mean(abs((actual_values - forecast_values_season) / actual_values)) * 10
 cat("RMSE for Seasonal Differencing:", rmse, "\n")
 cat("MAE for Seasonal Differencing: ", mae, "\n")
 cat("MAPE for Seasonal Differencing:", mape, "%\n")
-
 ```
 
 6.  BSTS with Seasonal Differencing with AR(5) Component
@@ -430,17 +403,17 @@ residuals_bsts_season_ar <- as.numeric(residuals(model_season_ar))
 plot(residuals_bsts_season_ar, main = "BSTS Residuals", ylab = "Residuals", xlab = "Time")
 acf(residuals_bsts_season_ar[1:5000])
 
-
 # forecast the next 59 days (Jan 2025 - Feb 2025)
-pred_season_ar <- predict(model_season_ar, horizon = 59)
-
+burn_season_ar <- SuggestBurn(0.1, model_season_ar)
+pred_season_ar <- predict(model_season_ar, burn = burn_season_ar, horizon = 59)
 
 # Accuracy metrics 
-
 actual_values <- test_data$USAQI
 
 # Reverse seasonal differencing
-forecast_values_season_ar <- c(tail(train_data$USAQI, 365), tail(train_data$USAQI, 1) + cumsum(pred_season_ar$mean))[-(1:365)]
+forecast_values_season_ar <- (aqi_train_ts[(length(aqi_train_ts) - 365 + 1):(length(aqi_train_ts) - 365 + 59)]) + pred_season_ar$mean
+
+forecast_values_season_ar1 = cumsum(c(tail(train_data$USAQI, 365), pred_season_ar$mean))[-(1:365)]
 
 rmse <- sqrt(mean((actual_values - forecast_values_season_ar)^2))
 mae  <- mean(abs(actual_values - forecast_values_season_ar))
@@ -449,7 +422,6 @@ mape <- mean(abs((actual_values - forecast_values_season_ar) / actual_values)) *
 cat("RMSE for Seasonal Differencing w/ AR(5):", rmse, "\n")
 cat("MAE for Seasonal Differencing w/ AR(5): ", mae, "\n")
 cat("MAPE for Seasonal Differencing w/ AR(5):", mape, "%\n")
-
 ```
 
 ###Model Results and Evaluation
@@ -485,9 +457,7 @@ The accuracy metrics for this model suggest poor predictive performance and a po
 
 - RMSE for 1st order Differencing w/ AR(5): 62.36532 
 
-
 - MAE for 1st order Differencing w/ AR(5):  58.3799 
-
 
 - MAPE for 1st order Differencing w/ AR(5): 139.591 %
 
@@ -528,7 +498,7 @@ MAE for BC AR(2):  40.31006
 
 MAPE for BC AR(2): 78.66772%
 
-These high error values indicate that the model does not accurately capture the underlying patterns in the data
+These high error values indicate that the model does not accurately capture the underlying patterns in the data.
 
 
 5. BSTS with Seasonal Differencing
@@ -541,13 +511,13 @@ library(knitr)
 knitr::include_graphics("BSTS_bc_ar_acf.png")
 ```
 
-The accuracy metrics for this model are similar to those of the first-order differenced model from earlier but are significantly lower than most models evaluated so far. Although the RMSE, MAE, and MAPE remain relatively high, they are more moderate compared to previous models, indicating an improvement but still leaving room for better accuracy.
+The accuracy metrics for this model are still relatively high, they are comparatively lower than those of earlier models, suggesting some improvement in predictive performance.
 
-RMSE for Seasonal Differencing: 16.84943 
+RMSE for Seasonal Differencing: 31.61426 
 
-MAE for Seasonal Differencing:  14.31927 
+MAE for Seasonal Differencing:  26.29701 
 
-MAPE for Seasonal Differencing: 38.51695%
+MAPE for Seasonal Differencing: 70.29435 %
 
 
 6. BSTS with Seasonal Differencing with AR(5) Component
@@ -559,16 +529,16 @@ library(knitr)
 knitr::include_graphics("bsts_season_ar.png")
 ```
 
-The accuracy metrics for this model are substantially high and among the highest across all 6 models tested. Notably, the MAPE is exceptionally high at 623.36%, suggesting that the model’s percentage-based errors are substantial, likely due to extreme variability or poor fit for certain values. 
+The accuracy metrics for this model achieves a moderate level of accuracy, but they are among the lowest error values observed across all six models tested. This suggests that incorporating an autoregressive (AR) component alongside seasonal differencing has contributed to improving the model’s predictive performance.
 
-RMSE for Seasonal Differencing w/ AR(5): 321.3093 
+RMSE for Seasonal Differencing w/ AR(5): 22.63542 
 
-MAE for Seasonal Differencing w/ AR(5):  289.6838 
+MAE for Seasonal Differencing w/ AR(5):  18.50529 
 
-MAPE for Seasonal Differencing w/ AR(5): 623.3638%
+MAPE for Seasonal Differencing w/ AR(5): 44.71288%
 
 
 ###Optimal BSTS Model
 
-Among the six models evaluated, the BSTS model with seasonal differencing was the best-performing model. This specific data transformation met the assumption of the BSTS model, ensuring that the residuals were uncorrelated. It also achieved the lowest error metrics, with an RMSE of just 16.85, significantly outperforming the other models. Interestingly, adding an AR component to the seasonal differencing substantially worsened predictive accuracy, suggesting that incorporating past values in this way introduced noise rather than improving the forecast.
+Among the six models evaluated, the BSTS with seasonal differencing with AR(5) component was the best-performing model. This specific data transformation met the assumption of the BSTS model, ensuring that the residuals were uncorrelated. It also achieved the lowest error metrics, although the metrics were still relatively high, indicating that the model does not accurately capture the underlying patterns in the data.
 
