@@ -31,7 +31,7 @@ The data used for this project is sourced from Open-Meteo, an open-source weathe
 
 # 2. Data 
 
-The AQI measurements are recorded at an hourly frequency. Initially, there were a few missing values causing minor gaps in the time series. To remedy this, we applied linear interpolation to estimate and fill in the missing hour values using values before and after the missing value, since we can assume for a given day the AQI values change slowly. After this, we aggregated the hour values to obtain daily AQI readings, which is the final data that we create our forecasting models with. AQI values range from 17 to 155, with a median of 43. As mentioned previously, the data ranges over approximately 12 years. For our models, we used the data from January 2, 2013 - December 31, 2024 as our training set, and tested on data from January 1, 2025 - February 28, 2025.
+The AQI measurements are recorded at an hourly frequency. Initially, there were a few missing values causing minor gaps in the time series. To remedy this, we applied linear interpolation to estimate and fill in the missing hour values using values before and after the missing value, since we can assume for a given day the AQI values change slowly. After this, we aggregated the hour values by taking the mean to obtain daily AQI readings, which is the final data that we create our forecasting models with. We opted to use daily AQI since hourly AQI is too granular and there is not much variance of AQI within any given day. AQI values range from 17 to 155, with a median of 43. As mentioned previously, the data ranges over approximately 12 years. For our models, we used the data from January 2, 2013 - December 31, 2024 as our training set, and tested on data from January 1, 2025 - February 28, 2025.
 
 
 ## 2.2 Elementary Data Analysis
@@ -111,11 +111,9 @@ Due to the data being non-stationary, we initially differenced the time series b
 
 Autoregressive Integrated Moving Average (ARIMA), Seasonal ARIMA (SARIMA), and Autoregressive Fractionally Integrated Moving Average (ARFIMA) models were employed to forecast the given time series data. These models are particularly useful in capturing trends, seasonality, and long-range dependencies in time series data. ARIMA is well-suited for stationary data, while SARIMA accounts for seasonality, and ARFIMA is useful for handling long-memory processes. The choice of these models allows for a comprehensive evaluation of different types of dependencies within the dataset.
 
-The models were constructed using three different data transformations: first-order differencing, Box-Cox differencing, and seasonal differencing. The ARIMA and SARIMA models were fitted using the auto.arima() function, which selected the best parameters based on AIC. The ARFIMA model was estimated using the arfima() function. ARFIMA, in particular, allows for fractional differencing, which provides flexibility in modeling long-memory properties without over-differencing the data.
+The models were constructed using three different data transformations: first-order differencing, Box-Cox differencing, and seasonal differencing. The ARIMA and SARIMA models were fitted using the auto.arima function, which selected the best parameters based on AIC. The ARFIMA model was estimated using the arfima function. ARFIMA, in particular, allows for fractional differencing, which provides flexibility in modeling long-memory properties without over-differencing the data.
 
-These models assume stationarity, independence of residuals, and a normally distributed error structure. The ADF test showed significant p-values, indicating stationarity after differencing. The KPSS test confirmed this stationarity, as all p-values were greater than 0.1. Additionally, the Ljung-Box test suggested that the ARFIMA model had the least amount of autocorrelation, further supporting its suitability. Normality of residuals was examined using histograms, which suggested that ARFIMA residuals were closest to a normal distribution compared to ARIMA and SARIMA.
-
-To assess the model assumptions, ACF plots and Residuals vs. Fitted plots were examined:
+These models assume stationarity, independence of residuals, and a normally distributed error structure. To assess the model assumptions, ACF plots and Residuals vs. Fitted plots were examined:
 
 ```{r}
 knitr::include_graphics("ARIMA_HJ/Plots_final/ACF_ARFIMA.png")
@@ -125,17 +123,17 @@ knitr::include_graphics("ARIMA_HJ/Plots_final/ACF_ARFIMA.png")
 knitr::include_graphics("ARIMA_HJ/Plots_final/ACF_SARIMA.png")
 ```
 
-The ACF plots for the ARFIMA model indicate  residual autocorrelation. However, the SARIMA model, in particular, exhibits significant autocorrelation, especially in seasonal components, indicating that errors are not independent. This suggests that the SARIMA model has unaccounted-for structure in its residuals, violating model assumptions.
+The ACF plots for the ARFIMA model indicate  residual autocorrelation. However, the SARIMA model, in particular, exhibits significant autocorrelation, especially in seasonal components. This suggests that the SARIMA model has unaccounted-for structure in its residuals. Due to this, the residual assumptions of the model are violated.
 
 ```{r}
-knitr::include_graphics("ARIMA_HJ/Plots_final/Residuals_FItted_ARFIMA.png")
+knitr::include_graphics("ARIMA_HJ/Plots_final/residuals_arfima.png")
 ```
 
 ```{r}
-knitr::include_graphics("ARIMA_HJ/Plots_final/Residuals_FItted_SARIMA.png")
+knitr::include_graphics("ARIMA_HJ/Plots_final/residuals_sarima.png")
 ```
 
-The Residuals vs. Fitted plots reveal that errors are randomly distributed without any significant pattern, confirming that the models appropriately capture the variance in the data. However, upon closer examination,  we see clear signs of heteroscedasticity, suggesting that these models do not adequately capture variance structure in the data. Thus, model assumptions regarding homoscedasticity are violated, further questioning the reliability of these models.
+The Residuals vs. Fitted plots reveal that errors are not randomly distributed without any significant pattern. We see clear signs of heteroscedasticity, suggesting that these models do not adequately capture the variance structure in the data. Thus, model assumptions regarding homoscedasticity are violated.
 
 ```{r}
 rmse_table <- data.frame(
@@ -155,11 +153,11 @@ Given that the ARFIMA model with first-order differencing had the lowest RMSE, i
 knitr::include_graphics("ARIMA_HJ/Plots_final/First_order_ARFIMA_Forecast.png")
 ```
 
-The forecast plot shows projected values for the next period with confidence intervals. The The forecast plot shows projected values for the next period with confidence intervals. The forecast aligns well with historical patterns, indicating that ARFIMA effectively captures the underlying time series structure. The confidence intervals remain relatively narrow, signifying a stable prediction range.
+The forecast plot shows projected values for the next period with confidence intervals. The forecast plot shows projected values for the next period with confidence intervals. The forecast aligns well with historical patterns, indicating that ARFIMA could potentially capture the underlying time series structure. The confidence intervals remain relatively narrow, signifying a stable prediction range.
 
-Despite ARFIMA’s relatively better performance, the overall analysis indicates that key model assumptions are violated for all models. The ACF plots highlight significant autocorrelation in SARIMA residuals, contradicting the assumption of white noise errors. The residual vs. fitted plots suggest heteroscedasticity, further undermining the validity of these models. Given these violations, it is evident that none of these models provide a perfect fit, and further refinements—such as incorporating alternative differencing methods or hybrid modeling approaches—are needed to improve predictive accuracy.
+Despite ARFIMA’s relatively better performance, the overall analysis indicates that key model assumptions are violated for all models. The ACF plots highlight significant autocorrelation in all of the models, especially with the SARIMA residuals, contradicting the assumption of white noise errors. The residual vs. fitted plots suggest heteroscedasticity, further undermining the validity of these models. Given these violations, it is evident that none of these models provide a perfect fit, and further refinements—such as incorporating alternative differencing methods or hybrid modeling approaches—are needed to improve predictive accuracy.
 
-The ARFIMA/ARIMA/SARIMA models simpler models which are easy to interpret, however the trade-off is at the cost of not capturing all underlying time series patterns.
+The ARFIMA, ARIMA, SARIMA models simpler models which are easy to interpret, however the trade-off is at the cost of not capturing all underlying time series patterns.
 
 
 ## 3.2 ETS, Holt Winters
@@ -228,13 +226,15 @@ The Holt-Winters model caused the seasonal and first-order differenced models to
 knitr::include_graphics("ETS_AB/forecast.png")
 ```
 
-The ETS/Holt Winters models basically smoothens the historic data to make a prediction, so the trade-off is that it is not necessary good at  predicting sudden changes (sudden AQI change during wildfires etc), and it tends to overfit for our data.
+The ETS and Holt-Winters models essentially smooth the historic data to make a prediction. Due to this there is a trade-off with the prediction ability of the ETS model when it comes to sudden changes in AQI. The ETS model is better at predicting gradual changes compared to sudden changes. For example, it would not effectively predict AQI changes in the event of natural disasters such as wildfires. Additionally, the trade-off for Holt-Winters model is that it tends to overfit to the train data.
 
 ## 3.3 BSTS
 
 A Bayesian Structural Time Series (BSTS) model is a state-space approach particularly useful for handling noisy data and missing values. It consists of multiple components that capture long-term trends, account for seasonality, manage residual noise, and incorporate external covariates. Due to its Bayesian framework, the model integrates prior knowledge into its predictions and employs Markov Chain Monte Carlo (MCMC) methods to estimate parameter distributions. Its ability to model complex time series structures makes BSTS a powerful tool for both predictive analytics and causal inference. The BSTS model is particularly apt for forecasting Daily Air Quality Index (AQI) due to its ability to handle uncertainty and model complex temporal patterns.
 
-The BSTS model is particularly well-suited for forecasting the Daily Air Quality Index (AQI) due to its ability to handle uncertainty and model complex temporal patterns. It effectively captures long-term trends and seasonality in air pollution levels, which are influenced by factors such as regulatory changes, weather patterns, and traffic emissions. By explicitly modeling these components, BSTS enhances AQI forecasting by accurately capturing recurring patterns over time. Additionally, the model is highly effective at handling noisy and missing data, which is common in air quality data due to fluctuations in environmental conditions, sensor inaccuracies, and missing observations. Operating within a state-space framework, BSTS provides robust estimation and improved forecast reliability, even with incomplete or irregular data. A major advantage of BSTS is its Bayesian inference approach, which integrates prior knowledge and continuously updates forecasts as new data becomes available, ensuring that the model adapts to evolving environmental patterns and improves over time. However, it is worth noting that this model can be resource-intensive, making real-time forecasting more challenging. Additionally, while incorporating external covariates to enhance its predictions, an excessive number of weakly correlated variables may introduce noise and reduce the model’s performance. Therefore, despite the many advantages for using this model for forecasting AQI, there are some trade-offs that should be considered. 
+The BSTS model is particularly well-suited for forecasting the Daily Air Quality Index (AQI) due to its ability to handle uncertainty and model complex temporal patterns. It effectively captures long-term trends and seasonality in air pollution levels, which are influenced by factors such as regulatory changes, weather patterns, and traffic emissions. By explicitly modeling these components, BSTS enhances AQI forecasting by accurately capturing recurring patterns over time. Additionally, the model is highly effective at handling noisy and missing data, which is common in air quality data due to fluctuations in environmental conditions, sensor inaccuracies, and missing observations. Operating within a state-space framework, BSTS provides robust estimation and improved forecast reliability, even with incomplete or irregular data. A major advantage of BSTS is its Bayesian inference approach, which integrates prior knowledge and continuously updates forecasts as new data becomes available, ensuring that the model adapts to evolving environmental patterns and improves over time. 
+
+However, it is worth noting that this model can be resource-intensive, making real-time forecasting more challenging. Additionally, while incorporating external covariates to enhance its predictions, an excessive number of weakly correlated variables may introduce noise and reduce the model’s performance. Therefore, despite the many advantages for using this model for forecasting AQI, there are some trade-offs that should be considered. 
 
 We developed 6 different models for comparison, 3 of the models use the transformed data previously mentioned, and the remaining 3 add an additional AR component to account for the autocorrelations in the time series. For all six models, a local linear trend and multiple seasonal components (weekly, monthly, and yearly) were included to capture both long-term trends and short-term dependencies in the time series. The local linear trend allows for smooth variations over time, while the seasonal terms account for recurring patterns in AQI at different time scales, ensuring a comprehensive time series representation. For models with an autoregressive (AR) component, an additional step was included in the state-space model to add the respective AR component (2 or 5).
 
@@ -308,7 +308,6 @@ knitr::include_graphics("BSTS_SC/bsts_seasonal_ar_forecast.png")
 ```
 
 
-The BSTS model shows promising results, but the trade-off is that the model is computationally heavy in order to properly capture the complexity. 
 
 ## 3.4 LSTM
 
@@ -380,13 +379,13 @@ https://github.com/johnmelel/TimeSeries_AQI_Forecasting
 
 Member Contributions:
 
-Anusha - EDA, exponential smoothing models, coalescing final code R script, formatting final report RMD, and coalescing individual member write-ups.
+Anusha - EDA, exponential smoothing models, coalescing final code R script, formatting final report RMD, and coalescing individual member write-ups, presented.
 
-Sara - EDA, BSTS models, data transformations, discussion.
+Sara - EDA, BSTS models, data transformations, discussion, presented.
 
-Hritik - EDA, ARIMA/SARIMA/ARFIMA models.
+Hritik - EDA, ARIMA/SARIMA/ARFIMA models, intro.
 
-John - EDA, LSTM models, made github repository, github readme, formatting final report RMD.
+John - EDA, LSTM models, made github repository, github readme, formatting final report RMD, presented.
 
 
 
