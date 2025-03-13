@@ -1,6 +1,6 @@
 ---
 title: "Forecasting Air Quality Index in London"
-author: "Anusha Bhat, Sarah Chaker, Hritik Jhaveri, John Melel"
+author: "Anusha Bhat, Sara Chaker, Hritik Jhaveri, John Melel"
 date: "2025-03-13"
 output:
   pdf_document:
