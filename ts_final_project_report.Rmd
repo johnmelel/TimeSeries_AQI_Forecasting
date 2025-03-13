@@ -123,7 +123,7 @@ knitr::include_graphics("ARIMA_HJ/Plots_final/ACF_ARFIMA.png")
 knitr::include_graphics("ARIMA_HJ/Plots_final/ACF_SARIMA.png")
 ```
 
-The ACF plots for both ARFIMA and SARIMA models indicate that residual autocorrelation is minimal, supporting the assumption of white noise residuals. However, SARIMA exhibits some autocorrelation at lower lags, suggesting potential room for improvement in parameter tuning. The ARFIMA model, with fractional differencing, appears to have eliminated most of the significant autocorrelations observed in other models, validating its effectiveness in handling long-range dependencies.
+The ACF plots for the ARFIMA model indicate  residual autocorrelation. However, the SARIMA model, in particular, exhibits significant autocorrelation, especially in seasonal components, indicating that errors are not independent. This suggests that the SARIMA model has unaccounted-for structure in its residuals, violating model assumptions.
 
 ```{r}
 knitr::include_graphics("ARIMA_HJ/Plots_final/Residuals_FItted_ARFIMA.png")
@@ -133,8 +133,7 @@ knitr::include_graphics("ARIMA_HJ/Plots_final/Residuals_FItted_ARFIMA.png")
 knitr::include_graphics("ARIMA_HJ/Plots_final/Residuals_FItted_SARIMA.png")
 ```
 
-The Residuals vs. Fitted plots reveal that errors are randomly distributed without any significant pattern, confirming that the models appropriately capture the variance in the data. The ARFIMA residuals appear more homoscedastic compared to SARIMA, which shows slight heteroskedasticity. The normality of residuals was further confirmed through Shapiro-Wilk tests, where the ARFIMA model achieved the highest p-value, supporting the assumption of normally distributed errors.
-
+The Residuals vs. Fitted plots reveal that errors are randomly distributed without any significant pattern, confirming that the models appropriately capture the variance in the data. However, upon closer examination,  we see clear signs of heteroscedasticity, suggesting that these models do not adequately capture variance structure in the data. Thus, model assumptions regarding homoscedasticity are violated, further questioning the reliability of these models.
 
 ```{r}
 rmse_table <- data.frame(
@@ -154,9 +153,9 @@ Given that the ARFIMA model with first-order differencing had the lowest RMSE, i
 knitr::include_graphics("ARIMA_HJ/Plots_final/First_order_ARFIMA_Forecast.png")
 ```
 
-The forecast plot shows projected values for the next period with confidence intervals. The forecast aligns well with historical patterns, indicating that ARFIMA effectively captures the underlying time series structure. The confidence intervals remain relatively narrow, signifying a stable prediction range. 
+The forecast plot shows projected values for the next period with confidence intervals. The The forecast plot shows projected values for the next period with confidence intervals. The forecast aligns well with historical patterns, indicating that ARFIMA effectively captures the underlying time series structure. The confidence intervals remain relatively narrow, signifying a stable prediction range.
 
-The analysis highlights that ARFIMA is the most effective model for this dataset, outperforming ARIMA and SARIMA in terms of RMSE. The model assumptions were largely satisfied, as indicated by the residual diagnostics. The ACF and residual plots support the conclusion that ARFIMA successfully captured both short-term and long-term dependencies, while the RMSE comparison and forecasting results confirm its superior predictive accuracy. However, future improvements could explore alternative fractional differencing parameters and hybrid models that combine ARFIMA with machine learning techniques to further enhance predictive performance.
+Despite ARFIMA’s relatively better performance, the overall analysis indicates that key model assumptions are violated for all models. The ACF plots highlight significant autocorrelation in SARIMA residuals, contradicting the assumption of white noise errors. The residual vs. fitted plots suggest heteroscedasticity, further undermining the validity of these models. Given these violations, it is evident that none of these models provide a perfect fit, and further refinements—such as incorporating alternative differencing methods or hybrid modeling approaches—are needed to improve predictive accuracy.
 
 
 ## 3.2 ETS, Holt Winters
