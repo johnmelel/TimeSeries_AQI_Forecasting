@@ -4,7 +4,7 @@
 # March 13, 2025
 
 # link to github for all files 
-https://github.com/johnmelel/TimeSeries_AQI_Forecasting
+# https://github.com/johnmelel/TimeSeries_AQI_Forecasting
 
 
 ########## Libraries ##########
@@ -149,11 +149,10 @@ diff_boxcox_train <- diff(boxcox_train, differences = 1)
 # Seasonal differencing
 seasonal_train <- diff(aqi_train_ts, lag = 365)
 
-# We will construct our ARIMA/SARIMA/ARFIMA, ETS, Holt Winters, and BSTS models
-# on the differenced, Box-Cox with difference, and seasonally differenced data
+# We will construct our ARIMA/SARIMA/ARFIMA, ETS, and BSTS models
+# on the differenced, Box-Cox with difference, and seasonally differenced data as needed
 # since these time series have stationarity and help with the outliers. For the
-# exponential smoothing and BSTS models, we will incorporate AR components to
-# help minimize the autocorrelations.
+# BSTS models, we will incorporate AR components to help minimize the autocorrelations.
 
 
 
@@ -442,86 +441,63 @@ print(summary(arfima_boxcox))
 # ETS Models
 
 
-# Differenced data
+# Untransformed data
 
 # Model
-diff_ets_mod = ets(diff_train)
-summary(diff_ets_mod)
+ets_mod = ets(diff_train)
+summary(ets_mod)
 
-checkresiduals(diff_ets_mod)
-diff_for = forecast(diff_ets_mod, h = 59)
-plot(diff_for, main = "Forecast for 2025 (Differenced)", ylab = "AQI", xlab = "Date")
-plot(fitted(diff_ets_mod), residuals(diff_ets_mod),
-     main="Residuals vs Fitted Values",
-     xlab="Fitted Values",
+checkresiduals(ets_mod)
+for1 = forecast(ets_mod, h = 59)
+plot(for1, main = "Forecast for 2025 (No Transformation)", ylab = "AQI", xlab = "Date")
+plot(fitted(ets_mod), residuals(ets_mod), 
+     main="Residuals vs Fitted Values", 
+     xlab="Fitted Values", 
      ylab="Residuals",
      pch = 16)
 abline(h=0, col="red")
 
 # Testing 
-forecast_values_diff = cumsum(c(tail(train_data$USAQI, 1), diff_for$mean))[-1]
-diff_resids = aqi_test_ts - forecast_values_diff
-diff_rmse = sqrt(mean(diff_resids^2))
-cat("Test RMSE:", diff_rmse)
-
-# Add AR Component (AR(5)) since the residuals are autocorrelated
-diff_ar = auto.arima(diff_train)
-summary(diff_ar)
-checkresiduals(diff_ar)
-Box.test(residuals(diff_ets_mod) + residuals(diff_ar), lag = 10)
-
-# Testing
-diff_for_ar = forecast(diff_ar, h = 59)
-diff_preds = forecast_values_diff + diff_for_ar$mean
-
-diff_cets_rmse = sqrt(mean((aqi_test_ts - diff_preds)^2))
-cat("Test RMSE:", diff_cets_rmse)
-
-# Residuals are still autocorrelated and the test RMSE went up.
+for1_vals = forecast(ets_mod)$mean
+resids1 = aqi_test_ts - for1_vals
+rmse1 = sqrt(mean(resids1^2))
+cat("Test RMSE:", rmse1)
 
 
-# Box-Cox with differencing
+# Box-Cox 
 
 # Model
-dbc_ets_mod = ets(diff_boxcox_train)
-summary(dbc_ets_mod)
+bc_ets_mod = ets(boxcox_train)
+summary(bc_ets_mod)
 
-checkresiduals(dbc_ets_mod)
-dbc_for = forecast(dbc_ets_mod, h = 59)
-plot(diff_for, main = "Forecast for 2025 (Differenced BC)", ylab = "AQI", xlab = "Date")
-plot(fitted(dbc_ets_mod), residuals(dbc_ets_mod),
-     main="Residuals vs Fitted Values",
-     xlab="Fitted Values",
+checkresiduals(bc_ets_mod)
+bc_for = forecast(bc_ets_mod, h = 59)
+plot(bc_for, main = "Forecast for 2025 (Box-Cox)", ylab = "AQI", xlab = "Date")
+plot(fitted(bc_ets_mod), residuals(bc_ets_mod), 
+     main="Residuals vs Fitted Values", 
+     xlab="Fitted Values", 
      ylab="Residuals",
      pch = 16)
 abline(h=0, col="red")
 
 # Testing
 # reverse differencing and box-cox
-lambda_value = BoxCox.lambda(aqi_train_ts)z
 
-forecast_values_bc = cumsum(c(tail(train_data$USAQI, 1), dbc_for$mean))[-1]
-# have to shift values to ensure positive values since some values in
-# (forecast_values_bc * lambda_value + 1) are negative, causing the
-# exponentiation to fail.
-forecast_values_bc = ((forecast_values_bc - min(forecast_values_bc) + 1) * lambda_value + 1)^(1/lambda_value)
-dbc_resids = aqi_test_ts - forecast_values_bc
-dbc_rmse = sqrt(mean(dbc_resids^2))
-cat("Test RMSE:", dbc_rmse)
+reverse_boxcox = function(predicted, original, lambda){
+  if (lambda == 0){
+    exp(predicted)
+  }
+  else {
+    (lambda * predicted + 1)^(1 / lambda)
+  }
+}
+lambda_value = BoxCox.lambda(aqi_train_ts)
 
-# Add AR Component (AR(2)) since the residuals are autocorrelated
-dbc_ar = auto.arima(boxcox_train)
-summary(dbc_ar)
-checkresiduals(dbc_ar)
-Box.test(rdbc_for_ar = forecast(dbc_ar, h = 59)
+forecast_values_bc = reverse_boxcox(bc_for$mean, aqi_train_ts, lambda_value)
+bc_resids = aqi_test_ts - forecast_values_bc
+bc_rmse = sqrt(mean(bc_resids^2))
 
-# Testing
-dbc_preds = forecast_values_bc + dbc_for_ar$mean
-dbc_cets_rmse = sqrt(mean((aqi_test_ts - dbc_preds)^2))
-cat("Test RMSE:", dbc_cets_rmse)esiduals(dbc_ets_mod) + residuals(dbc_ar), lag = 10)
-
-# Residuals are still autocorrelated but they decreased a little with using the AR.
-
+cat("Test RMSE:", bc_rmse)
 
 # Seasonally Differenced
 
@@ -547,156 +523,20 @@ ds_resids = aqi_test_ts - forecast_values_season
 ds_rmse = sqrt(mean(ds_resids^2))
 cat("Test RMSE:", ds_rmse)
 
-# Add AR Component (AR(5)) since the residuals are autocorrelated
-ds_ar = auto.arima(seasonal_train)
-summary(ds_ar)
-checkresiduals(ds_ar)
-Box.test(residuals(ds_ets_mod) + residuals(ds_ar), lag = 10)
-
-# Testing 
-ds_for_ar = forecast(ds_ar, h = 59)
-ds_preds = forecast_values_season + ds_for_ar$mean
-ds_cets_rmse = sqrt(mean((aqi_test_ts - ds_preds)^2))
-cat("Test RMSE:", ds_cets_rmse)
-
-
-
-# Holt-Winters Models
-
-
-# Differenced data
-
-# Model
-diff_hw_mod = HoltWinters(diff_train, seasonal = "additive")
-summary(diff_hw_mod)
-
-checkresiduals(diff_hw_mod)
-diff_hw_for = forecast(diff_hw_mod, h = 59)
-plot(diff_hw_for, main = "Forecast for 2025 HW (Differenced)")
-plot(diff_hw_mod$fitted[,1], residuals(diff_hw_mod),
-     main="Residuals vs Fitted Values",
-     xlab="Fitted Values",
-     ylab="Residuals",
-     pch = 16)
-abline(h=0, col="red")
-
-# Testing 
-forecast_values_hw_diff =  cumsum(c(tail(train_data$USAQI, 1),
-                                    diff_hw_for$mean))[-1]
-diff_hw_res = aqi_test_ts - forecast_values_hw_diff
-diff_hw_rmse = sqrt(mean(diff_hw_res^2))
-cat("Test RMSE:", diff_hw_rmse)
-
-# Add AR Component (AR(5)) since the residuals are autocorrelated
-Box.test(residuals(diff_hw_mod) + residuals(diff_ar), lag = 10)
-
-# Testing 
-diff_preds2 = forecast_values_hw_diff + diff_for_ar$mean
-diff_chw_rmse = sqrt(mean((aqi_test_ts - diff_preds2)^2))
-cat("Test RMSE:", diff_chw_rmse)
-# Residuals are still autocorrelated and the test RMSE went up.
-
-
-# Box-Cox with differencing
-
-# Model
-dbc_hw_mod = HoltWinters(diff_boxcox_train, seasonal = "additive")
-summary(dbc_hw_mod)
-
-checkresiduals(dbc_hw_mod)
-dbc_hw_for = forecast(dbc_hw_mod, h = 59)
-plot(diff_hw_for, main = "Forecast for 2025 HW (Differenced BC)")
-plot(dbc_hw_mod$fitted[,1], residuals(dbc_hw_mod),
-     main="Residuals vs Fitted Values",
-     xlab="Fitted Values",
-     ylab="Residuals",
-     pch = 16)
-abline(h=0, col="red")
-
-# Testing
-# reverse differencing and box-cox
-lambda_value = BoxCox.lambda(aqi_train_ts)
-forecast_values_hw_bc = cumsum(c(tail(train_data$USAQI, 1), dbc_hw_for$mean))[-1]
-forecast_values_hw_bc = ((forecast_values_hw_bc - min(forecast_values_hw_bc) + 1) * lambda_value + 1)^(1/lambda_value)
-
-dbc_hw_res = aqi_test_ts - forecast_values_hw_bc
-dbc_hw_rmse = sqrt(mean(dbc_hw_res^2))
-cat("Test RMSE:", dbc_hw_rmse)
-
-# Add AR Component (AR(2)) since the residuals are autocorrelated
-Box.test(residuals(dbc_hw_mod) + residuals(dbc_ar), lag = 10)
-
-# Testing
-dbc_preds2 = forecast_values_hw_diff + diff_for_ar$mean
-
-dbc_chw_rmse = sqrt(mean((aqi_test_ts - dbc_preds2)^2))
-cat("Test RMSE:", dbc_chw_rmse)
-# Residuals are still autocorrelated but the test had much lower RMSE.
-
-
-# Seasonally Differenced
-
-# Model
-ds_hw_mod = HoltWinters(seasonal_train, seasonal = "additive")
-summary(ds_hw_mod)
-
-checkresiduals(ds_hw_mod)
-dds_hw_for = forecast(ds_hw_mod, h = 59)
-plot(diff_hw_for, main = "Forecast for 2025 HW (Differenced Seasonal)")
-plot(ds_hw_mod$fitted[,1], residuals(ds_hw_mod),
-     main="Residuals vs Fitted Values",
-     xlab="Fitted Values",
-     ylab="Residuals",
-     pch = 16)
-abline(h=0, col="red")
-
-# Testing
-original = aqi_train_ts
-forecast_values_hw_season = (original[(length(original) - 365 + 1):(length(original) - 365 + 59)]) + ds_hw_for$mean
-ds_resids = aqi_test_ts - forecast_values_hw_season
-ds_hw_rmse = sqrt(mean(ds_resids^2))
-cat("Test RMSE:", ds_hw_rmse)
-
-# Add AR Component (AR(5)) since the residuals are autocorrelated
-Box.test(residuals(ds_hw_mod) + residuals(ds_ar), lag = 10)
-
-# Testing 
-ds_preds2 = forecast_values_hw_season + diff_for_ar$mean
-ds_chw_rmse = sqrt(mean((aqi_test_ts - ds_preds2)^2))
-cat("Test RMSE:", ds_chw_rmse)
-# Residuals are still autocorrelated but the test had similar RMSE.
-
 # Model Comparison
-
-# ETS
 ets_rmse_table <- data.frame(
-  "Differenced" = diff_rmse,
-  "Differenced + ARIMA" = diff_cets_rmse,
-  "Differenced Boxcox" = dbc_rmse,
-  "Differenced Boxcox + ARIMA" = dbc_cets_rmse,
-  "Seasonal" = ds_rmse,
-  "Seasonal + ARIMA" = ds_cets_rmse
+  "No Transformation" = rmse1,
+  "Boxcox" = bc_rmse,
+  "Seasonal" = ds_rmse
 )
 rownames(ets_rmse_table) <- c("Test Accuracy")
 
-print(ets_rmse_table)
+ets_rmse_table
 
-# HW
-hw_rmse_table <- data.frame(
-  "Differenced" = diff_hw_rmse,
-  "Differenced + ARIMA" = diff_chw_rmse,
-  "Differenced Boxcox" = dbc_hw_rmse,
-  "Differenced Boxcox + ARIMA" = dbc_chw_rmse,
-  "Seasonal" = ds_hw_rmse,
-  "Seasonal + ARIMA" = ds_chw_rmse
-)
-rownames(hw_rmse_table) <- c("Test Accuracy")
 
-print(hw_rmse_table)
-
-# Holt-winters made seasonal and differenced perform worse but boxcox
-# differenced performed better. For both, differenced was the best performing,
-# though it had lower RMSE for the simple ets model.
+# The best performing was Box-Cox, it had RMSE 1/3 lower than the untransformed data. 
+# The residuals have autocorrelations but it's fine given the assumptions of the model
+# and the nature of the data.
 
 
 ########## BSTS Models: Sarah ##########

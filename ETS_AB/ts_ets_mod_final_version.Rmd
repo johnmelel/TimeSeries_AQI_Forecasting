@@ -1,0 +1,483 @@
+---
+title: "Cleaned Modeling"
+author: "Anusha Bhat"
+date: "2025-03-12"
+output: html_document
+---
+
+
+```{r}
+library(readxl)
+library(tseries)
+library(forecast)
+library(hts)
+library(zoo)
+```
+
+# Data loading (EDA in other file)
+
+```{r}
+# Read in data
+aqi = read_excel("London_AQI_Daily.xlsx")
+
+head(aqi)
+```
+
+```{r}
+dailyaqi = aqi
+dailyaqi$Date <- as.Date(dailyaqi$Date, format="%Y-%m-%d")
+aqi_ts <- ts(dailyaqi$USAQI, frequency = 365, start = c(2013, 1))
+```
+
+
+```{r}
+# split the data into train and test 
+train_data <- subset(dailyaqi, Date < as.Date("2025-1-01"))
+test_data  <- subset(dailyaqi, Date >= as.Date("2025-1-01"))
+
+# create time series 
+aqi_train_ts <- ts(train_data$USAQI, frequency = 365, start = c(2013, 1))
+aqi_test_ts  <- ts(test_data$USAQI, frequency = 365, start = c(2025, 1))
+```
+
+```{r}
+#### Apply differencing ####
+
+# first-order differencing 
+diff_train <- diff(aqi_train_ts, differences = 1)
+
+# differenced box-cox 
+boxcox_train <- BoxCox(aqi_train_ts, lambda = (BoxCox.lambda(aqi_train_ts)))
+
+diff_boxcox_train <- diff(boxcox_train, differences = 1)
+
+# seasonal differencing 
+seasonal_train <- diff(aqi_train_ts, lag = 365)
+```
+
+Doing the following three transformations to account for outliers and to make the time series stationary:
+-- differencing by 1
+-- boxcox + differencing by 1
+-- seasonal differencing (yearly)
+
+```{r}
+plot(stl(aqi_train_ts, s.window = "periodic"))
+```
+
+```{r}
+plot(stl(diff_train, s.window = "periodic"))
+```
+```{r}
+plot(stl(diff_boxcox_train, s.window = "periodic"))
+```
+
+```{r}
+plot(stl(boxcox_train, s.window = "periodic"))
+```
+```{r}
+plot(stl(seasonal_train, s.window = "periodic"))
+```
+
+The differenced and differenced box_cox had no non-zero trend so we will only use the original, boxcox, and seasonal for our models. 
+
+
+
+Next, we will make a simple exponential smoothing model and a holt winters model for all 3 of these transformations.
+
+
+### ETS Model 
+
+#### No Difference 
+```{r}
+ets_mod = ets(aqi_train_ts)
+summary(ets_mod)
+```
+
+
+```{r}
+checkresiduals(ets_mod)
+```
+
+```{r}
+# Forecast 
+for1 = forecast(ets_mod, h = 59)
+plot(for1, main = "Forecast for 2025 (No Transformation)", ylab = "AQI", xlab = "Date")
+```
+
+
+```{r}
+plot(fitted(ets_mod), residuals(ets_mod), 
+     main="Residuals vs Fitted Values", 
+     xlab="Fitted Values", 
+     ylab="Residuals",
+     pch = 16)
+abline(h=0, col="red")
+```
+```{r}
+for1_vals = forecast(ets_mod)$mean
+resids1 = aqi_test_ts - for1_vals
+rmse1 = sqrt(mean(resids1^2))
+
+cat("Test RMSE:", rmse1)
+```
+The residuals are autocorrelated which is expected. 
+
+#### BoxCox
+
+
+```{r}
+bc_ets_mod = ets(boxcox_train)
+summary(bc_ets_mod)
+```
+
+
+```{r}
+checkresiduals(bc_ets_mod)
+```
+
+
+```{r}
+# Forecast 
+bc_for = forecast(bc_ets_mod, h = 59)
+plot(bc_for, main = "Forecast for 2025 (Box-Cox)", ylab = "AQI", xlab = "Date")
+```
+
+
+```{r}
+plot(fitted(bc_ets_mod), residuals(bc_ets_mod), 
+     main="Residuals vs Fitted Values", 
+     xlab="Fitted Values", 
+     ylab="Residuals",
+     pch = 16)
+abline(h=0, col="red")
+```
+
+```{r}
+reverse_boxcox = function(predicted, original, lambda){
+  if (lambda == 0){
+    exp(predicted)
+  }
+  else {
+    (lambda * predicted + 1)^(1 / lambda)
+  }
+}
+```
+
+
+```{r}
+# reverse differencing and box-cox 
+lambda_value = BoxCox.lambda(aqi_train_ts)
+
+forecast_values_bc = reverse_boxcox(bc_for$mean, aqi_train_ts, lambda_value)
+```
+
+```{r}
+bc_resids = aqi_test_ts - forecast_values_bc
+bc_rmse = sqrt(mean(bc_resids^2))
+
+cat("Test RMSE:", bc_rmse)
+```
+The residuals are still autocorrelated
+
+
+
+#### Differenced Seasonal 
+
+
+```{r}
+ds_ets_mod = ets(seasonal_train)
+summary(ds_ets_mod)
+```
+
+
+```{r}
+checkresiduals(ds_ets_mod)
+```
+
+```{r}
+# Forecast 
+ds_for = forecast(ds_ets_mod, h = 59)
+plot(ds_for, main = "Forecast for 2025 (Differenced Seasonal)", ylab = "AQI", 
+     xlab = "Date", xlim = c(2024, 2025))
+```
+
+
+```{r}
+plot(fitted(ds_ets_mod), residuals(ds_ets_mod), 
+     main="Residuals vs Fitted Values", 
+     xlab="Fitted Values", 
+     ylab="Residuals",
+     pch = 16)
+abline(h=0, col="red")
+```
+
+
+
+```{r}
+original = aqi_train_ts
+forecast_values_season = (original[(length(original) - 365 + 1):(length(original) - 365 + 59)]) + ds_for$mean
+ds_resids = aqi_test_ts - forecast_values_season
+ds_rmse = sqrt(mean(ds_resids^2))
+
+cat("Test RMSE:", ds_rmse)
+```
+
+The residuals are autocorrelated. This performed better than no transformation but not as good as boxcox which was the best. 
+
+
+
+### Holt Winters 
+
+
+#### No Differencing
+
+
+```{r}
+hw_mod = HoltWinters(aqi_train_ts, seasonal = "additive")
+summary(hw_mod)
+```
+
+
+```{r}
+hw_for = forecast(hw_mod, h = 59)
+plot(hw_for, main = "Forecast for 2025 HW (No Transformation)")
+```
+
+
+```{r}
+plot(hw_mod$fitted[,1], residuals(hw_mod), 
+     main="Residuals vs Fitted Values", 
+     xlab="Fitted Values", 
+     ylab="Residuals",
+     pch = 16)
+abline(h=0, col="red")
+```
+
+
+```{r}
+checkresiduals(hw_mod)
+```
+
+```{r}
+forecast_values_hw =  hw_for$mean
+hw_res = aqi_test_ts - forecast_values_hw
+
+hw_rmse = sqrt(mean(hw_res^2))
+
+cat("Test RMSE:", hw_rmse)
+```
+This performed better than the general ets. Residuals still autocorrelated.
+
+
+#### BoxCox
+
+```{r}
+bc_hw_mod = HoltWinters(boxcox_train, seasonal = "additive")
+summary(bc_hw_mod)
+```
+
+
+```{r}
+bc_hw_for = forecast(bc_hw_mod, h = 59)
+plot(bc_hw_for, main = "Forecast for 2025 HW (BoxCox)")
+```
+
+
+```{r}
+plot(bc_hw_mod$fitted[,1], residuals(bc_hw_mod), 
+     main="Residuals vs Fitted Values", 
+     xlab="Fitted Values", 
+     ylab="Residuals",
+     pch = 16)
+abline(h=0, col="red")
+```
+
+
+```{r}
+checkresiduals(bc_hw_mod)
+```
+
+```{r}
+# reverse differencing and box-cox 
+lambda_value = BoxCox.lambda(aqi_train_ts)
+
+forecast_values_hw_bc = reverse_boxcox(bc_hw_for$mean, aqi_test_ts, lambda_value)
+```
+
+
+
+```{r}
+bc_hw_res = aqi_test_ts - forecast_values_hw_bc
+
+bc_hw_rmse = sqrt(mean(bc_hw_res^2))
+
+cat("Test RMSE:", bc_hw_rmse)
+```
+
+
+#### Seasonal Differencing 
+
+
+```{r}
+ds_hw_mod = HoltWinters(seasonal_train, seasonal = "additive")
+summary(ds_hw_mod)
+```
+
+
+```{r}
+ds_hw_for = forecast(ds_hw_mod, h = 59)
+plot(ds_hw_for, main = "Forecast for 2025 HW (Differenced Seasonal)")
+```
+
+
+```{r}
+plot(ds_hw_mod$fitted[,1], residuals(ds_hw_mod), 
+     main="Residuals vs Fitted Values", 
+     xlab="Fitted Values", 
+     ylab="Residuals",
+     pch = 16)
+abline(h=0, col="red")
+```
+
+
+```{r}
+checkresiduals(ds_hw_mod)
+```
+
+```{r}
+original = aqi_train_ts
+forecast_values_hw_season = (original[(length(original) - 365 + 1):(length(original) - 365 + 59)]) + ds_hw_for$mean
+ds_resids = aqi_test_ts - forecast_values_hw_season
+
+ds_hw_rmse = sqrt(mean(ds_resids^2))
+
+cat("Test RMSE:", ds_hw_rmse)
+```
+
+
+
+### Model comparisons
+
+```{r}
+#ETS
+ets_rmse_table <- data.frame(
+  "No Transformation" = rmse1,
+  "Boxcox" = bc_rmse,
+  "Seasonal" = ds_rmse
+)
+rownames(ets_rmse_table) <- c("Test Accuracy")
+
+ets_rmse_table
+```
+
+### Model comparisons
+
+```{r}
+#HW
+hw_rmse_table <- data.frame(
+  "No Transformation" = hw_rmse,
+  "Boxcox" = bc_hw_rmse,
+  "Seasonal" = ds_hw_rmse
+)
+rownames(hw_rmse_table) <- c("Test Accuracy")
+
+hw_rmse_table
+```
+
+Holt-winters made seasonal and boxcox perform worse but no transformation performed better. Boxcox was the best performing overall.
+
+
+
+# Plots: 
+
+
+```{r}
+par(mfrow = c(1, 3))
+acf(residuals(ets_mod), main = "ETS No Transformation")
+acf(residuals(bc_ets_mod), main = "ETS Box-Cox")
+acf(residuals(ds_ets_mod), main = "ETS Seasonally Differenced")
+```
+```{r}
+plot(stl(aqi_train_ts, s.window = "periodic"), 
+     main = "STL Decomposition (No Transformation)")
+plot(stl(boxcox_train, s.window = "periodic"), 
+     main = "STL Decomposition (Box-Cox)")
+plot(stl(seasonal_train, s.window = "periodic"), 
+     main = "STL Decomposition (Seasonally Differenced)")
+plot(stl(diff_train, s.window = "periodic"), 
+     main = "STL Decomposition (1st Order Differenced)")
+plot(stl(diff_boxcox_train, s.window = "periodic"), 
+     main = "STL Decomposition (Seasonally Differenced)")
+```
+```{r}
+#getting last 60 values from train
+train_last_60 <- tail(aqi_train_ts, 60)
+
+# Plot forecast with test data (on original scale)
+plot(forecast_values_bc, main = "ETS Forecast (Box-Cox Transformation)", ylim = c(0, 150 ), xlim = c(2024.85,2025.18), ylab="AQI")
+lines(aqi_test_ts, col = "red", lwd = 2)
+lines(train_last_60, col = "blue", lwd = 2)
+legend("topright", legend = c("Forecast", "Test"), col = c("black", "red"), lty = 1)
+
+```
+
+```{r}
+plot(bc_for, xlim = c(2024.8, 2025))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

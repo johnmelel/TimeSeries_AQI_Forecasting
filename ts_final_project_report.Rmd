@@ -52,7 +52,7 @@ knitr::include_graphics("Final figures/outliers.png")
 
 
 
-Tthe distribution of AQI is right-skewed, with a majority of values falling in the 20-60 range. The right-skewed nature of this distribution suggests that we need to account for outliers in our data transformations. Although some values deviate significantly from the mean, they are still within a reasonable AQI range. Therefore, they were retained in the dataset.
+The distribution of AQI is right-skewed, with a majority of values falling in the 20-60 range. The right-skewed nature of this distribution suggests that we need to account for outliers in our data transformations. Although some values deviate significantly from the mean, they are still within a reasonable AQI range. Therefore, they were retained in the dataset.
 
 
 ```{r, echo=FALSE}
@@ -102,18 +102,17 @@ knitr::kable(data,
 
 
 
-Due to the data being non-stationary, we initially differenced the time series by one lag. This result in an ADF test and KPSS test result of stationary. Next, we performed a Box-Cox transformation to account for the outliers. This resulted in a KPSS test of non-stationary, so we differenced it by one lag, which resulted in an ADF test and KPSS test result of stationary. Finally, we applied a seasonal differencing transformation to account for the seasonality observed in the data. This also passed both stationary tests. We decided to use these three time series for each of our models to help determine the best-performing model as each transformation accounts for different patterns in the data. Since autocorrelation was detected in the ACF plot in Figure 2, we also will incorporate autoregressive (AR) components in our models.
+Due to the data being non-stationary, we initially differenced the time series by one lag. This results in an ADF test and KPSS test result of stationary. Next, we performed a Box-Cox transformation to account for the outliers. This resulted in a KPSS test of non-stationary, so we differenced it by one lag, which resulted in an ADF test and KPSS test result of stationary. Finally, we applied a seasonal differencing transformation to account for the seasonality observed in the data. This also passed both stationary tests. We decided to use these three time series for each of our models to help determine the best-performing model as each transformation accounts for different patterns in the data. Since autocorrelation was detected in the ACF plot in Figure 2, we also will incorporate autoregressive (AR) components in our models.
 
 
 # 3. Models
 
 ## 3.1 ARIMA, SARIMA, ARFIMA 
 
-Autoregressive Integrated Moving Average (ARIMA), Seasonal ARIMA (SARIMA), and Autoregressive Fractionally Integrated Moving Average (ARFIMA) models were employed to forecast the given time series data. These models are particularly useful in capturing trends, seasonality, and long-range dependencies in time series data. ARIMA is well-suited for capturing temporal patterns and dependencies, while SARIMA accounts for seasonality, and ARFIMA is useful for handling long-memory processes. The choice of these models allows for a comprehensive evaluation of different types of dependencies within the dataset. The ARFIMA, ARIMA, SARIMA are simpler models, allowing for easy interpretability, however, this trade-off is at the cost of potentially not capturing all of the complex underlying time series patterns.
+Autoregressive Integrated Moving Average (ARIMA), Seasonal ARIMA (SARIMA), and Autoregressive Fractionally Integrated Moving Average (ARFIMA) models were employed to forecast the given time series data. These models are particularly useful in capturing trends, seasonality, and long-range dependencies in time series data. ARIMA is well-suited for capturing temporal patterns and dependencies, while SARIMA accounts for seasonality, and ARFIMA is useful for handling long-memory processes. The choice of these models allows for a comprehensive evaluation of different types of dependencies within the dataset. The ARFIMA, ARIMA, and SARIMA are simpler models, allowing for easy interpretability, however, this trade-off is at the cost of potentially not capturing all of the complex underlying time series patterns.
 
 The models were constructed using the original non-differenced data since they take differencing and stationarity into account when fitting the p, d, q values. Additionally, the models were constructed with the Box-Cox (non-differenced) data for further comparison. The ARIMA and SARIMA models were fitted using the auto.arima function, which selected the best parameters based on AIC. The ARFIMA model was estimated using the arfima function. ARFIMA, in particular, allows for fractional differencing, which provides flexibility in modeling long-memory properties without over-differencing the data.
 
-These models assume that the data is univariate and stationary, residuals are uncorrelated white noise. To assess the model assumptions, ACF plots and Residuals vs. Fitted plots were examined:
 
 ```{r}
 pdq_table <- data.frame(
@@ -137,7 +136,13 @@ rownames(pdq_table) <- c("ARIMA", "SARIMA", "ARFIMA")
 
 knitr::kable(pdq_table, caption = "Parameter Values: Box-Cox", col.names = c("P", "D", "Q"))
 ```
+
 For both the non-differenced and Box-Cox transformation, the ARIMA and SARIMA models have the same parameter values for p, d, and q, respectively. All three of the models have a non-zero d value, relecting the non-stationarity of the data. 
+
+
+These models assume that the data is univariate and stationary, residuals are uncorrelated white noise. To assess the model assumptions, ACF plots and Residuals vs. Fitted plots were examined.
+
+
 
 ```{r}
 knitr::include_graphics("ARIMA_HJ/arima_arfima_sarima_acf.png")
@@ -156,7 +161,8 @@ knitr::include_graphics("ARIMA_HJ/arima_arfima_sarima_residuals.png")
 knitr::include_graphics("ARIMA_HJ/arima_arfima_sarima_bc_res.png")
 ```
 
-All of the ACF plots show autocorrelation with a few significant spikes for each of the models. All of the Residuals vs. Fitted plots reveal that the errors are not randomly distributed without any significant pattern. We see clear signs of heteroscedasticity, suggesting that these models do not adequately capture the variance structure in the data. Thus, model assumptions regarding homoscedasticity are also violated. 
+
+All of the ACF plots show autocorrelation with a few significant spikes for each of the models. All of the Residuals vs. Fitted plots reveal that the errors are not randomly distributed and without any significant pattern. We see clear signs of heteroscedasticity, suggesting that these models do not adequately capture the variance structure in the data. Thus, model assumptions regarding homoscedasticity are also violated. 
 
 ```{r}
 rmse_table <- data.frame(
@@ -168,6 +174,7 @@ rmse_table <- data.frame(
 knitr::kable(rmse_table, caption = "RMSE Comparison of Models", col.names = c("Transformation", "ARIMA RMSE", "SARIMA RMSE", "ARFIMA RMSE"))
 ```
 
+
 For the ARIMA and SARIMA models, the Box-Cox transformation performed better, while the non-transformed data performed better for the ARFIMA model. The ARIMA and SARIMA models with the Box-Cox transformation had the lowest RMSEs. Since the SARIMA model accounts for seasonality, which is present in our data, this model was selected as the best performing model out of the six total, and therefore, this model was selected for forecasting. It is important to note that the Box-Cox transformed ARFIMA model performing worse than the non-transformed data is unexpected. Since Box-Cox transformation typically enhances model performance, the reason for this outcome remains unclear.
 
 Given that the SARIMA model with Box-Cox Differencing had the lowest RMSE, it was selected for forecasting.
@@ -176,79 +183,52 @@ Given that the SARIMA model with Box-Cox Differencing had the lowest RMSE, it wa
 knitr::include_graphics("ARIMA_HJ/sarima_bc_forecast.png")
 ```
 
-The forecast plot shows projected values for the next period with confidence intervals. The forecast aligns well with historical patterns, indicating that the SARIMA could potentially capture the underlying time series structure. The confidence intervals remain relatively narrow, signifying a stable prediction range.
-
-Despite the SARIMA model’s relatively better performance, the overall analysis indicates that key model assumptions are violated for all models. The ACF plots highlight significant autocorrelation in all of the models, contradicting the assumption of white noise errors. The residual vs. fitted plots suggest heteroscedasticity, further undermining the validity of these models. Given these violations, it is evident that none of these models provide a perfect fit, and further refinements—such as incorporating alternative differencing methods or hybrid modeling approaches—are needed to improve predictive accuracy. Additionally, since these models violate their assumptions, we will not consider them for further model comparison.
+In the forecast, we observe that the trend for the predicted values is approximately linear and close to the average of the actual 2025 AQI values--not quite following the trend of the actual data, but being close enough in the value for a low RMSE. Despite the SARIMA model’s relatively better performance, the overall analysis indicates that key model assumptions are violated for all models. The ACF plots highlight significant autocorrelation in all of the models, contradicting the assumption of white noise errors. The residual vs. fitted plots suggest heteroscedasticity, further undermining the validity of these models. Given these violations, it is evident that none of these models provide a perfect fit, and further refinements—such as incorporating alternative differencing methods or hybrid modeling approaches—are needed to improve predictive accuracy. Additionally, since these models violate their assumptions, we will not consider them for further model comparison.
 
 
-## 3.2 ETS, Holt Winters
+## 3.2 Exponential Smoothing
 
-Exponential Smoothing models assign exponentially decreasing weights to past observations, giving more importance to recent data. Exponential Smoothing State Space Models (ETS) capture three main components: error, trend, and seasonality. Holt-Winters (HW) is a variation of ETS that specifically accounts for trends and seasonality, with an additional smoothing parameter for seasonal data. The key difference is that while ETS handles both additive and multiplicative seasonality, HW focuses more on seasonal fluctuations. These models are ideal for forecasting AQI values, as AQI data often exhibits both trends and seasonal patterns, with recent data playing a greater role, making ETS and HW suitable for accurate short-term predictions in air quality monitoring.
-
-Both the ETS and HW models were initially fit using each of the three data transformations. We then incorporated an autoregressive component to each of these models by constructing an auto-ARIMA model on each transformation, then combining the forecasting predictions with the predictions from the original models. 
-
-The two models have similar assumptions. Exponential Smoothing models assume that the data exhibits consistent trends and seasonality, and that recent observations are more relevant for forecasting future values. They handle both additive and multiplicative seasonality and assume that the underlying data structure remains stable over time without drastic changes. Additionally, the model assumes that errors from one period are independent and not correlated with past errors. These assumptions allow Exponential Smoothing models, including ETS and Holt-Winters, to effectively forecast time series data with clear patterns, such as the AQI values, where recent data is more influential and trends and seasonality are important factors. Most of this is immediately satisfied before running our models. From the STL decomposition we observe that there is a trend and seasonality to the data,  recent data values are more relevant for forecasting by nature of AQI and air pollution, the seasonality is additive, and the data is stationary. After constructing our models, we can observe whether the uncorrelated and independent errors assumption is satisfied. 
+Exponential Smoothing models assign exponentially decreasing weights to past observations, giving more importance to recent data. Exponential Smoothing State Space Models (ETS) capture three main components: error, trend, and seasonality. These models are ideal for forecasting AQI values, as AQI data often exhibits both trends and seasonal patterns, with recent data playing a greater role, making ETS suitable for accurate short-term predictions in air quality monitoring.
 
 ```{r}
-knitr::include_graphics("ETS_AB/ets_acf.png")
+knitr::include_graphics("ETS_AB/stl_decomps.png")
 ```
+
+An ETS model only works well when the time series has an observable trend. The decomposition plots revealed that only the undifferenced, Box-Cox, and seasonally differenced time series had nonzero trends. The first order differenced and the differenced Box-Cox time series had zero-valued trends. Due to this, we only used the undifferenced, Box-Cox, and seasonally differenced transformations for our ETS models. 
+
+Exponential Smoothing models assume that the data exhibits consistent trends and seasonality, and that recent observations are more relevant for forecasting future values. They handle both additive and multiplicative seasonality and assume that the underlying data structure remains stable over time without drastic changes.  There is no assumption about the errors. From the STL decomposition we observe that there is a trend and seasonality to the data, recent data values are more relevant for forecasting by nature of AQI and air pollution, the seasonality is additive, and the data is stationary.
 
 ```{r}
-knitr::include_graphics("ETS_AB/hw_acf.png")
+knitr::include_graphics("ETS_AB/acf_fixed.png")
 ```
 
-For the ETS and HW models on only the transformed data, there were significant autocorrelations between the residuals. This violates the assumptions of the model. 
 
-
-```{r}
-knitr::include_graphics("ETS_AB/ets_rf.png")
-```
-
-Additionally, the residual versus fit plot for the ETS model shows heteroskedasticity for the errors, further violating the model's assumptions. We incorporated the autoregressive components into each model to address this autocorrelation issue. 
-
-
-```{r}
-lj_box_results <- data.frame(
-  Model = c("Differenced AR ETS", 
-            "Differenced Box-Cox AR ETS", 
-            "Seasonally Differenced AR ETS", 
-            "Differenced AR HW", 
-            "Differenced Box-Cox AR HW", 
-            "Seasonally Differenced AR HW"),
-  p_Value = c(2.2e-16, 2.2e-16, 2.2e-16, 2.2e-16, 2.2e-16, 2.2e-16)
-)
-
-lj_box_results$p_Value <- format(lj_box_results$p_Value, scientific = TRUE)
-
-knitr::kable(lj_box_results, caption = "Ljung-Box Test Results for Different Models", 
-             col.names = c("Model", "P-Value"))
-```
+All three models had significant autocorrelations among the residuals as observed in the ACF plots. However, this is negligible since the ETS model has no assumptions on the errors and we can assume there will be correlation seen between observations in AQI due to the nature of pollution and environmental factors from previous days impacting a current day's AQI.
 
 
 ```{r}
 rmse_results <- data.frame(
-  Model = c("ETS Differenced", "ETS Differenced AR", "ETS Differenced Box-Cox", 
-            "ETS Differenced Box-Cox AR", "ETS Seasonal", "ETS Seasonal AR",
-            "HW Differenced", "HW Differenced AR", "HW Differenced Box-Cox", 
-            "HW Differenced Box-Cox AR", "HW Seasonal", "HW Seasonal AR"),
-  RMSE = c(17.88, 18.19, 45.33, 44.69, 22.82, 24.29, 
-           18.42, 19.28, 44.99, 43.42, 39.23, 39.30)
+  Model = c("No Transformation", "Box-Cox", "Seasonally Differenced"),
+  RMSE = c(61.73323,	17.94778,	22.82394	)
 )
 
 
-knitr::kable(rmse_results, caption = "RMSE Results for Different Models", 
+knitr::kable(rmse_results, caption = "RMSE Results for the ETS Models", 
              col.names = c("Model", "RMSE"), digits = 2)
 ```
 
-The Holt-Winters model caused the seasonal and first-order differenced models to perform worse than the ETS model, although the differenced Box-Cox transformation performed better. For both models, the first-order differenced version was the best performing, although it yielded a lower RMSE for the simple ETS model. Adding autoregressive components to the models resulted in worse performance for both the first-order differenced and seasonally differenced ETS and HW models compared to when the autoregressive components were excluded. Overall, the first-order differenced ETS model performed the best among these models, having the lowest RMSE value of 17.88. The forecast for this model is below. However, it is important to note that all of these models had slight assumption violations that should be further explored and addressed in future work.
+The untransformed data had the highest RMSE, therefore, it performed the worst out of all three models. The Box-Cox transformation performed the best, having the lowest RMSE of 17.95. The forecast for this model is displayed. Due to the mathematical model, the ETS model predicts the same value for all 59 days of 2025, indicated by the flat line on the graph. Despite this line being linear and not following the trend of the actual test data closely, this model still performs well with a low RMSE.
+
 
 ```{r}
-knitr::include_graphics("ETS_AB/forecast.png")
+knitr::include_graphics("ETS_AB/forecast_final.png")
 ```
 
-The ETS and Holt-Winters models essentially smooth the historic data to make a prediction. Due to this there is a trade-off with the prediction ability of the ETS model when it comes to sudden changes in AQI. The ETS model is better at predicting gradual changes compared to sudden changes. For example, it would not effectively predict AQI changes in the event of natural disasters such as wildfires. Additionally, the trade-off for Holt-Winters model is that it tends to overfit to the train data.
+The ETS model essentially smooths the historic data to make a prediction. Due to this there is a trade-off with the prediction ability of the ETS model when it comes to sudden changes in AQI. The ETS model is better at predicting gradual changes compared to sudden changes. For example, it would not effectively predict AQI changes in the event of natural disasters such as wildfires. 
 
-## 3.3 BSTS
+
+## 3.3 Bayesian Structural Time Series
+
 
 A Bayesian Structural Time Series (BSTS) model is a state-space approach particularly useful for handling noisy data and missing values. It consists of multiple components that capture long-term trends, account for seasonality, manage residual noise, and incorporate external covariates. Due to its Bayesian framework, the model integrates prior knowledge into its predictions and employs Markov Chain Monte Carlo (MCMC) methods to estimate parameter distributions. Its ability to model complex time series structures makes BSTS a powerful tool for both predictive analytics and causal inference.
 
@@ -259,7 +239,7 @@ However, it is worth noting that this model can be resource-intensive, making re
 ### 3.3.a BSTS Model Execution 
 
 We developed 6 different models for comparison, 3 of the models use the transformed data previously mentioned, and the remaining 3 add an additional AR component to account for the autocorrelations in the time series. The best AR component was determined by running an auto.arima for each of the three transformations. An AR(5) for both the differenced and seasonally differenced transformations
-was the best model, while, and AR(2) was the best model for the differenced box-cox transformation. Therefore, these AR components will be used in the respective transformations.
+was the best model, while, an AR(2) was the best model for the differenced box-cox transformation. Therefore, these AR components will be used in the respective transformations.
 
 For all six models, a local linear trend and multiple seasonal components (weekly, monthly, and yearly) were included to capture both long-term trends and short-term dependencies in the time series. The local linear trend allows for smooth variations over time, while the seasonal terms account for recurring patterns in AQI at different time scales, ensuring a comprehensive time series representation. For models with an autoregressive (AR) component, an additional step was included in the state-space model to add the respective AR component (2 or 5). Additionally, burn-in values were found for each model prior to prediction. This step helps discard initial estimates that may be biased or unstable, ensuring a more reliable starting point for prediction.
 
@@ -317,7 +297,7 @@ rmse_data <- data.frame(
 
 knitr::kable(rmse_data, 
              col.names = c("Transformation", "RMSE"), 
-             caption = "RMSE for Different Transformations and Models") %>%
+             caption = "RMSE for Different Transformations and BSTS Models") %>%
   kableExtra::kable_styling("striped", full_width = FALSE)
 ```
 
@@ -335,18 +315,15 @@ knitr::include_graphics("BSTS_SC/bsts_seasonal_ar_forecast.png")
 
 ## 3.4 LSTM
 
-For our final model, we used LSTM on as it outperforms traditional models for complex, nonlinear time series data, especially when long-term dependencies exist. We created a stacked model with double layer LSTM for learning the AQI data and two dense layers for predicting output, and our sequence window was for 60 days. The data was also scaled using Min-Max Scaling for consistency. The model was trained for 5 epochs and, overall, gave great predictions with relatively low RMSE. Since the model is capable of capturing trends and long-term dependencies in the data, we felt that it was sufficient to only construct this model on the actual data.
+For our final model, we used LSTM on as it outperforms traditional models for complex, nonlinear time series data, especially when long-term dependencies exist. We created a stacked model with double layer LSTM for learning the AQI data and two dense layers for predicting output, and our sequence window was for 60 days. The model was constructed using the untransformed time series since this model makes no assumptions about the data, therefore, no transformations were necessary. The data was also scaled using Min-Max Scaling for consistency. The model was trained for 5 epochs and, overall, gave great predictions with relatively low RMSE. Since the model is capable of capturing trends and long-term dependencies in the data, we felt that it was sufficient to only construct this model on the actual data.
 
 
 ```{r, echo=FALSE}
 knitr::include_graphics("Final figures/lstm_plot.png")
 ```
 
-```{r, echo=FALSE}
-knitr::include_graphics("Final figures/lstm_resid.png")
-```
 
-As observed, the forecasted values closely follow the trend line of the data with a slight right shift. The prediction residuals are non-correlated with a mean around 0, further supporting that this is a good model. 
+As observed, the forecasted values closely follow the trend line of the data with a slight right shift. This highlights the model's high accuracy and ability to capture the complex trends underlying the data.
 
 Unlike ARMA and ARIMA, there are no assumptions required whatsoever when performing time series modeling with Neural Networks. This is because Neural Networks are universal approximators, and with a deep and wide enough architecture, they can approximate any arbitrary function. 
 
@@ -356,22 +333,22 @@ The LSTM model performs the best, but the trade-off is that the model is slightl
 
 # 4. Results 
 
+We constructed a total of 16 models by applying first-order differencing, Box-Cox transformation, and seasonal differencing to the data. These models include ARIMA, SARIMA, and ARFIMA, ETS, and BSTS models for certain transformations based on model assumptions. LSTM was performed on only the first-order differencing data. Furthermore, we included three additional models incorporating autoregressive terms for each of the transformations for the ETS, Holt-Winters, and BSTS models.
+
 ```{r}
 models <- data.frame(
-  Model = c("Differenced ARFIMA", "Differenced ETS", "Seasonal AR(5)", "LSTM"),
-  Test_Accuracy = c(18.68, 17.88, 22.64, 10.20)
+  Model = c("Differenced ARFIMA", "Differenced ETS", "BSTS Seasonal AR(5)", "LSTM"),
+  Test_Accuracy = c(18.46, 17.95, 22.64, 10.20)
 )
 
 models %>%
-  kable(caption = "Test Accuracy for Different Models", 
+  kable(caption = "Test Accuracy for  the Best Performing Models", 
         col.names = c("Model", "Test Accuracy")) %>%
   kable_styling("striped", full_width = FALSE)
 ```
 
 
-We constructed a total of 28 models by applying first-order differencing, Box-Cox transformation, and seasonal differencing to the data. These models include ARIMA, SARIMA, and ARFIMA, ETS, Holt-Winters, and BSTS models for each transformation and LSTM on only the first-order differencing data. Furthermore, we included three additional models incorporating autoregressive terms for each of the transformations for the ETS, Holt-Winters, and BSTS models.
-
-From the initial set of models, it was observed that ARFIMA outperformed both SARIMA and ARIMA, which exhibited similar performance. In particualy, the first-order differenced ARFIMA performed the best from this set. Additionally, general exponential smoothing (ETS) models performed better than the Holt-Winters models for first-order differencing and seasonal differencing, while the Box-Cox Holt-Winters models outperformed the rest. The best model in the second set, the first-order differenced ETS, performed slightly better than the first-order differenced ARFIMA model, having an RMSE slightly smaller by 1. However, despite the low to moderate RMSE values and their applicability to the forecasting scenario, none of the models in the first and second sets satisfied the assumption of uncorrelated errors. Therefore, these models cannot be considered well-performing even if they have lower RMSEs than the BSTS models. In the third set, the seasonally differenced model with AR(5) outperformed the other BSTS models. While the first-order differenced model showed a lower test RMSE, it was disregarded as the best-performing model due to its violation of the uncorrelated errors assumption.
+From the initial set of models, it was observed that SARIMA with a Box-Cox transformation outperformed the other models. The SARIMA and ARIMA models performed the same and outperformed the ARFIMA models for the Box-Cox transformation. The best model in the second set, ETS using a Box-Cox transformation, performed much better than the no transformation model, having an RMSE slightly smaller by almost one third. In the third set, the seasonally differenced model with AR(5) outperformed the other BSTS models. While the first-order differenced model showed a lower test RMSE, it was disregarded as the best-performing model due to its violation of the uncorrelated errors assumption.
 
 Ultimately, the LSTM model significantly outperformed all other models, with the lowest RMSE of 10.2. This is expected, as it is the most complex model across the four sets. With its high forecasting accuracy, this model is ideal for stakeholders to monitor AQI and implement intervention practices to reduce pollution, raise awareness of air quality hazards, and promote environmental safety.
 
@@ -403,13 +380,13 @@ https://github.com/johnmelel/TimeSeries_AQI_Forecasting
 
 Member Contributions:
 
-Anusha - EDA, exponential smoothing models, coalescing final code R script, formatting final report RMD, and coalescing individual member write-ups.
+Anusha - EDA, exponential smoothing models, coalescing final code R script, coalescing individual member write-ups, and formatting final report RMD.
 
-Sara - EDA, BSTS models, data transformations, discussion.
+Sara - EDA, BSTS models, data transformations, discussion, coalescing final code R script, and formatting final report RMD.
 
-Hritik - EDA, ARIMA/SARIMA/ARFIMA models, intro.
+Hritik - EDA, ARIMA/SARIMA/ARFIMA models, and introduction.
 
-John - EDA, LSTM models, made github repository, github readme, formatting final report RMD.
+John - EDA, LSTM models, creating and managing github repository, and formatting final report RMD.
 
 
 
