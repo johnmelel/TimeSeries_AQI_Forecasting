@@ -288,7 +288,7 @@ rmse_data <- data.frame(
   Transformation = c("1st order Differencing", "1st order Differencing AR(5)", 
                      "Box-Cox Transformation", "Box-Cox AR(2)", 
                      "Seasonal Differencing", "Seasonal Differencing AR(5)"),
-  RMSE = c(16.85, 62.36, 43.62, 43.94, 31.61, 22.64)
+  RMSE = c(16.85, 22.64, 43.62, 43.94, 31.61, 22.64)
 )
 
 knitr::kable(rmse_data, 
