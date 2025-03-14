@@ -24,7 +24,7 @@ knitr::opts_chunk$set(echo = FALSE, warnings = FALSE, messages = FALSE)
 
 # 1. Introduction
 
-Air pollution is a critical public health concern in urban areas, particularly in London, where long-term exposure to poor air quality has historically contributed to respiratory diseases, cardiovascular issues, and reduced life expectancy. London has faced severe air pollution problems for centuries, from the coal-driven smogs of the 17th century to the infamous Great Smog of 1952, which led to the Clean Air Acts of 1956 and 1968. However, air pollution remained a persistent issue into the late 20th and early 21st centuries. In the 1990s, studies highlighted the dangers of nitrogen dioxide (NO₂) and particulate matter from vehicle emissions, particularly from the rise of diesel cars. By the early 2000s, London was struggling to meet European Union air quality standards, leading to policies such as the introduction of the Congestion Charge in 2003 to reduce traffic pollution. Despite these efforts, air pollution continues to pose a significant challenge due to vehicle emissions, industrial activity, and urban density. The importance of monitoring and forecasting air quality in London cannot be overstated, as it directly affects public health, the economy, and the overall livability of the city. Timely intervention, such as issuing health advisories, implementing traffic control measures, and enforcing emissions regulations, can help mitigate these risks. By forecasting the Air Quality Index (AQI), stakeholders like the Greater London Authority, UK Environment Agency, Public Health England, Transport for London, and industrial sectors can make informed decisions on pollution control, public health strategies, and urban planning. Additionally, London residents, commuters, and environmental advocacy groups all stand to benefit from better air quality management.
+Air pollution is a critical public health concern in urban areas, where long-term exposure to poor air quality contributes to respiratory diseases, cardiovascular issues, and reduced life expectancy. London has historically had some of the worst air quality for urban areas, with the UK focusing more policy in recent times to target reducing the pollution and air quality. The importance of monitoring and forecasting air quality in London cannot be overstated, as it directly affects public health, the economy, and the overall livability of the city. Timely intervention, such as issuing health advisories, implementing traffic control measures, and enforcing emissions regulations, can help mitigate these risks. By forecasting the Air Quality Index (AQI), stakeholders like the Greater London Authority, UK Environment Agency, Public Health England, Transport for London, and industrial sectors can make informed decisions on pollution control, public health strategies, and urban planning. Additionally, London residents, commuters, and environmental advocacy groups all stand to benefit from better air quality management.
 
 The data used for this project is sourced from Open-Meteo, an open-source weather API that provides free access to weather data for non-commercial use. The dataset contains daily AQI readings for London, using the United States Air Quality Index (USAQI) scale. This scale is commonly employed to assess and report air quality levels, reflecting concentrations of pollutants like particulate matter (PM2.5, PM10), ozone, and nitrogen dioxide. The data spans from January 2, 2013, to February 28, 2025, covering a significant period that captures both long-term trends and seasonal variations in air quality. By leveraging this dataset, the goal of this project is to develop an accurate time series forecasting model to predict future AQI levels, enabling stakeholders to issue early warnings for high pollution days, implement timely pollution control measures, and guide long-term environmental strategies aimed at improving air quality, protecting public health, and promoting sustainable urban development.
 
@@ -109,11 +109,35 @@ Due to the data being non-stationary, we initially differenced the time series b
 
 ## 3.1 ARIMA, SARIMA, ARFIMA 
 
-Autoregressive Integrated Moving Average (ARIMA), Seasonal ARIMA (SARIMA), and Autoregressive Fractionally Integrated Moving Average (ARFIMA) models were employed to forecast the given time series data. These models are particularly useful in capturing trends, seasonality, and long-range dependencies in time series data. ARIMA is well-suited for stationary data, while SARIMA accounts for seasonality, and ARFIMA is useful for handling long-memory processes. The choice of these models allows for a comprehensive evaluation of different types of dependencies within the dataset.
+Autoregressive Integrated Moving Average (ARIMA), Seasonal ARIMA (SARIMA), and Autoregressive Fractionally Integrated Moving Average (ARFIMA) models were employed to forecast the given time series data. These models are particularly useful in capturing trends, seasonality, and long-range dependencies in time series data. ARIMA is well-suited for capturing temporal patterns and dependencies, while SARIMA accounts for seasonality, and ARFIMA is useful for handling long-memory processes. The choice of these models allows for a comprehensive evaluation of different types of dependencies within the dataset. The ARFIMA, ARIMA, SARIMA are simpler models, allowing for easy interpretability, however, this trade-off is at the cost of potentially not capturing all of the complex underlying time series patterns.
 
-The models were constructed using three different data transformations: first-order differencing, Box-Cox differencing, and seasonal differencing. The ARIMA and SARIMA models were fitted using the auto.arima function, which selected the best parameters based on AIC. The ARFIMA model was estimated using the arfima function. ARFIMA, in particular, allows for fractional differencing, which provides flexibility in modeling long-memory properties without over-differencing the data.
+The models were constructed using the original non-differenced data since they take differencing and stationarity into account when fitting the p, d, q values. Additionally, the models were constructed with the Box-Cox (non-differenced) data for further comparison. The ARIMA and SARIMA models were fitted using the auto.arima function, which selected the best parameters based on AIC. The ARFIMA model was estimated using the arfima function. ARFIMA, in particular, allows for fractional differencing, which provides flexibility in modeling long-memory properties without over-differencing the data.
 
-These models assume stationarity, independence of residuals, and a normally distributed error structure. To assess the model assumptions, ACF plots and Residuals vs. Fitted plots were examined:
+These models assume that the data is univariate and stationary, residuals are uncorrelated white noise. To assess the model assumptions, ACF plots and Residuals vs. Fitted plots were examined:
+
+```{r}
+pdq_table <- data.frame(
+  P = c(5, 5, 0.749),
+  D = c(1, 1, 0.246),
+  Q = c(0, 0, -0.253)
+)
+
+rownames(pdq_table) <- c("ARIMA", "SARIMA", "ARFIMA")
+
+knitr::kable(pdq_table, caption = "Parameter Values: No Transformation", col.names = c("P", "D", "Q"))
+```
+```{r}
+pdq_table <- data.frame(
+  P = c(2, 2, 0.686),
+  D = c(1, 1, 0.184),
+  Q = c(0, 0, -0.201)
+)
+
+rownames(pdq_table) <- c("ARIMA", "SARIMA", "ARFIMA")
+
+knitr::kable(pdq_table, caption = "Parameter Values: Box-Cox", col.names = c("P", "D", "Q"))
+```
+For both the non-differenced and Box-Cox transformation, the ARIMA and SARIMA models have the same parameter values for p, d, and q, respectively. All three of the models have a non-zero d value, relecting the non-stationarity of the data. 
 
 ```{r}
 knitr::include_graphics("ARIMA_HJ/arima_arfima_sarima_acf.png")
@@ -123,7 +147,6 @@ knitr::include_graphics("ARIMA_HJ/arima_arfima_sarima_acf.png")
 knitr::include_graphics("ARIMA_HJ/arima_arfima_sarima_bc_acf.png")
 ```
 
-The ACF plots for the ARFIMA model indicate  residual autocorrelation. However, the SARIMA model, in particular, exhibits significant autocorrelation, especially in seasonal components. This suggests that the SARIMA model has unaccounted-for structure in its residuals. Due to this, the residual assumptions of the model are violated.
 
 ```{r}
 knitr::include_graphics("ARIMA_HJ/arima_arfima_sarima_residuals.png")
@@ -133,19 +156,19 @@ knitr::include_graphics("ARIMA_HJ/arima_arfima_sarima_residuals.png")
 knitr::include_graphics("ARIMA_HJ/arima_arfima_sarima_bc_res.png")
 ```
 
-The Residuals vs. Fitted plots reveal that errors are not randomly distributed without any significant pattern. We see clear signs of heteroscedasticity, suggesting that these models do not adequately capture the variance structure in the data. Thus, model assumptions regarding homoscedasticity are violated.
+All of the ACF plots show autocorrelation with a few significant spikes for each of the models. All of the Residuals vs. Fitted plots reveal that the errors are not randomly distributed without any significant pattern. We see clear signs of heteroscedasticity, suggesting that these models do not adequately capture the variance structure in the data. Thus, model assumptions regarding homoscedasticity are also violated. 
 
 ```{r}
 rmse_table <- data.frame(
-  Transformation = c("1st Differencing", "Box-Cox Differencing", "Seasonal Differencing"),
-  ARIMA_RMSE = c(23.56, 42.53, 27.22),
-  SARIMA_RMSE = c(23.56, 42.53, 27.22),
-  ARFIMA_RMSE = c(18.68, 42.64, 26.89)
+  Transformation = c("No Differencing", "Box-Cox Differencing"),
+  ARIMA_RMSE = c(21.40, 18.46),
+  SARIMA_RMSE = c(21.40, 18.46),
+  ARFIMA_RMSE = c(18.91, 20.81)
 )
 knitr::kable(rmse_table, caption = "RMSE Comparison of Models", col.names = c("Transformation", "ARIMA RMSE", "SARIMA RMSE", "ARFIMA RMSE"))
 ```
 
-Among all models, the first-order differencing ARFIMA model performed the best, achieving the lowest RMSE value of 18.68. The Box-Cox differencing transformation did not improve model performance significantly, as the RMSE values remained relatively high across all models. The seasonal differencing transformation provided moderate improvements but was still outperformed by first-order differencing.
+For the ARIMA and SARIMA models, the Box-Cox transformation performed better, while the untransformed data performed better for the ARFIMA model. The ARIMA and SARIMA models with the Box-Cox transformation had the lowest RMSEs. Since the SARIMA model accounts for seasonality, which is present in our data, this model was selected as the best performing model out of the six total, and therefore, this model was selected for forecasting.
 
 Given that the ARFIMA model with first-order differencing had the lowest RMSE, it was selected for forecasting.
 
@@ -153,11 +176,9 @@ Given that the ARFIMA model with first-order differencing had the lowest RMSE, i
 knitr::include_graphics("ARIMA_HJ/Plots_final/First_order_ARFIMA_Forecast.png")
 ```
 
-The forecast plot shows projected values for the next period with confidence intervals. The forecast plot shows projected values for the next period with confidence intervals. The forecast aligns well with historical patterns, indicating that ARFIMA could potentially capture the underlying time series structure. The confidence intervals remain relatively narrow, signifying a stable prediction range.
+The forecast plot shows projected values for the next period with confidence intervals. The forecast aligns well with historical patterns, indicating that the SARIMA could potentially capture the underlying time series structure. The confidence intervals remain relatively narrow, signifying a stable prediction range.
 
-Despite ARFIMA’s relatively better performance, the overall analysis indicates that key model assumptions are violated for all models. The ACF plots highlight significant autocorrelation in all of the models, especially with the SARIMA residuals, contradicting the assumption of white noise errors. The residual vs. fitted plots suggest heteroscedasticity, further undermining the validity of these models. Given these violations, it is evident that none of these models provide a perfect fit, and further refinements—such as incorporating alternative differencing methods or hybrid modeling approaches—are needed to improve predictive accuracy.
-
-The ARFIMA, ARIMA, SARIMA models simpler models which are easy to interpret, however the trade-off is at the cost of not capturing all underlying time series patterns.
+Despite the SARIMA model’s relatively better performance, the overall analysis indicates that key model assumptions are violated for all models. The ACF plots highlight significant autocorrelation in all of the models, contradicting the assumption of white noise errors. The residual vs. fitted plots suggest heteroscedasticity, further undermining the validity of these models. Given these violations, it is evident that none of these models provide a perfect fit, and further refinements—such as incorporating alternative differencing methods or hybrid modeling approaches—are needed to improve predictive accuracy. Additionally, since these models violate their assumptions, we will not consider them for further model comparison.
 
 
 ## 3.2 ETS, Holt Winters
