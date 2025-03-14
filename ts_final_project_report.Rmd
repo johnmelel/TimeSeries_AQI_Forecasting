@@ -168,12 +168,12 @@ rmse_table <- data.frame(
 knitr::kable(rmse_table, caption = "RMSE Comparison of Models", col.names = c("Transformation", "ARIMA RMSE", "SARIMA RMSE", "ARFIMA RMSE"))
 ```
 
-For the ARIMA and SARIMA models, the Box-Cox transformation performed better, while the untransformed data performed better for the ARFIMA model. The ARIMA and SARIMA models with the Box-Cox transformation had the lowest RMSEs. Since the SARIMA model accounts for seasonality, which is present in our data, this model was selected as the best performing model out of the six total, and therefore, this model was selected for forecasting.
+For the ARIMA and SARIMA models, the Box-Cox transformation performed better, while the non-transformed data performed better for the ARFIMA model. The ARIMA and SARIMA models with the Box-Cox transformation had the lowest RMSEs. Since the SARIMA model accounts for seasonality, which is present in our data, this model was selected as the best performing model out of the six total, and therefore, this model was selected for forecasting. It is important to note that the Box-Cox transformed ARFIMA model performing worse than the non-transformed data is unexpected. Since Box-Cox transformation typically enhances model performance, the reason for this outcome remains unclear.
 
-Given that the ARFIMA model with first-order differencing had the lowest RMSE, it was selected for forecasting.
+Given that the SARIMA model with Box-Cox Differencing had the lowest RMSE, it was selected for forecasting.
 
 ```{r}
-knitr::include_graphics("ARIMA_HJ/Plots_final/First_order_ARFIMA_Forecast.png")
+knitr::include_graphics("ARIMA_HJ/sarima_bc_forecast.png")
 ```
 
 The forecast plot shows projected values for the next period with confidence intervals. The forecast aligns well with historical patterns, indicating that the SARIMA could potentially capture the underlying time series structure. The confidence intervals remain relatively narrow, signifying a stable prediction range.
