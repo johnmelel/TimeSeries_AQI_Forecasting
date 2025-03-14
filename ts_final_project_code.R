@@ -185,10 +185,6 @@ reverse_boxcox <- function(predicted, original, lambda) {
 
 ## ARIMA with No Transformation
 
-# ACF and PACF plots for ARIMA with No Transformation
-acf(aqi_train_ts, main = "ARIMA(5,1,0) - ACF")
-pacf(aqi_train_ts, main = "ARIMA(5,1,0) - PACF")
-
 # Fit ARIMA model
 arima_no_transform <- auto.arima(aqi_train_ts)
 
@@ -203,6 +199,11 @@ abline(h = 0, col = "red", lwd = 2)
 print("Diagnostics for ARIMA(5,1,0)")
 print(adf.test(residuals(arima_no_transform)))
 print(kpss.test(residuals(arima_no_transform)))
+
+# ACF and PACF plots for ARIMA with No Transformation
+acf(residuals(arima_no_transform), main = "ARIMA(5,1,0) - ACF")
+pacf(residuals(arima_no_transform), main = "ARIMA(5,1,0) - PACF")
+
 
 # Forecast
 forecast_arima_no_transform <- forecast(arima_no_transform, h = length(aqi_test_ts))
@@ -225,10 +226,6 @@ print(summary(arima_no_transform))
 ## SARIMA with No Transformation
 
 
-# ACF and PACF plots for SARIMA with No Transformation
-acf(aqi_train_ts, main = "SARIMA(5,1,0) - ACF")
-pacf(aqi_train_ts, main = "SARIMA(5,1,0) - PACF")
-
 # Fit SARIMA model
 sarima_no_transform <- auto.arima(aqi_train_ts, seasonal = TRUE)
 
@@ -243,6 +240,10 @@ abline(h = 0, col = "red", lwd = 2)
 print("Diagnostics for SARIMA(5,1,0)")
 print(adf.test(residuals(sarima_no_transform)))
 print(kpss.test(residuals(sarima_no_transform)))
+
+# ACF and PACF plots for SARIMA with No Transformation
+acf(residuals(sarima_no_transform), main = "SARIMA(5,1,0) - ACF")
+pacf(residuals(sarima_no_transform), main = "SARIMA(5,1,0) - PACF")
 
 # Forecast
 forecast_sarima_no_transform <- forecast(sarima_no_transform, h = length(aqi_test_ts))
@@ -265,10 +266,6 @@ print(summary(sarima_no_transform))
 ## ARFIMA with No Transformation
 
 
-# ACF and PACF plots for ARFIMA with No Transformation
-acf(aqi_train_ts, main = "ARFIMA - ACF")
-pacf(aqi_train_ts, main = "ARFIMA - PACF")
-
 # Fit ARFIMA model
 arfima_no_transform <- arfima(aqi_train_ts)
 
@@ -283,6 +280,10 @@ abline(h = 0, col = "red", lwd = 2)
 print("Diagnostics for ARFIMA")
 print(adf.test(residuals(arfima_no_transform)))
 print(kpss.test(residuals(arfima_no_transform)))
+
+# ACF and PACF plots for ARFIMA with No Transformation
+acf(residuals(arfima_no_transform), main = "ARFIMA - ACF")
+pacf(residuals(arfima_no_transform), main = "ARFIMA - PACF")
 
 # Forecast
 forecast_arfima_no_transform <- forecast(arfima_no_transform, h = length(aqi_test_ts))
@@ -304,11 +305,6 @@ print(summary(arfima_no_transform))
 
 ## ARIMA with Box-Cox Transformation
 
-
-# ACF and PACF plots for ARIMA with Box-Cox Transformation
-acf(boxcox_train, main = "ARIMA - ACF (Box-Cox Transformation)")
-pacf(boxcox_train, main = "ARIMA - PACF (Box-Cox Transformation)")
-
 # Fit ARIMA model
 arima_boxcox <- auto.arima(boxcox_train)
 
@@ -323,6 +319,10 @@ abline(h = 0, col = "red", lwd = 2)
 print("Diagnostics for ARIMA with Box-Cox Transformation")
 print(adf.test(residuals(arima_boxcox)))
 print(kpss.test(residuals(arima_boxcox)))
+
+# ACF and PACF plots for ARIMA with Box-Cox Transformation
+acf(residuals(arima_boxcox), main = "ARIMA - ACF (Box-Cox Transformation)")
+pacf(residuals(arima_boxcox), main = "ARIMA - PACF (Box-Cox Transformation)")
 
 # Forecast
 forecast_arima_boxcox <- forecast(arima_boxcox, h = length(aqi_test_ts))
@@ -346,10 +346,6 @@ print(summary(arima_boxcox))
 
 ## SARIMA with Box-Cox Transformation
 
-# ACF and PACF plots for SARIMA with Box-Cox Transformation
-acf(boxcox_train, main = "SARIMA - ACF (Box-Cox Transformation)")
-pacf(boxcox_train, main = "SARIMA - PACF (Box-Cox Transformation)")
-
 # Fit SARIMA model
 sarima_boxcox <- auto.arima(boxcox_train, seasonal = TRUE)
 
@@ -364,6 +360,11 @@ abline(h = 0, col = "red", lwd = 2)
 print("Diagnostics for SARIMA with Box-Cox Transformation")
 print(adf.test(residuals(sarima_boxcox)))
 print(kpss.test(residuals(sarima_boxcox)))
+
+# ACF and PACF plots for SARIMA with Box-Cox Transformation
+acf(residuals(sarima_boxcox), main = "SARIMA - ACF (Box-Cox Transformation)")
+pacf(residuals(sarima_boxcox), main = "SARIMA - PACF (Box-Cox Transformation)")
+
 
 # Forecast
 forecast_sarima_boxcox <- forecast(sarima_boxcox, h = length(aqi_test_ts))
@@ -387,11 +388,6 @@ print(summary(sarima_boxcox))
 
 ## ARFIMA with Box-Cox Transformation
 
-# ACF and PACF plots for ARFIMA with Box-Cox Transformation
-par(mfrow = c(1, 2))
-acf(boxcox_train, main = "ARFIMA - ACF (Box-Cox Transformation)")
-pacf(boxcox_train, main = "ARFIMA - PACF (Box-Cox Transformation)")
-
 # Fit ARFIMA model
 arfima_boxcox <- arfima(boxcox_train)
 
@@ -406,6 +402,11 @@ abline(h = 0, col = "red", lwd = 2)
 print("Diagnostics for ARFIMA with Box-Cox Transformation")
 print(adf.test(residuals(arfima_boxcox)))
 print(kpss.test(residuals(arfima_boxcox)))
+
+# ACF and PACF plots for ARFIMA with Box-Cox Transformation
+par(mfrow = c(1, 2))
+acf(residuals(arfima_boxcox), main = "ARFIMA - ACF (Box-Cox Transformation)")
+pacf(residuals(arfima_boxcox), main = "ARFIMA - PACF (Box-Cox Transformation)")
 
 # Forecast
 forecast_arfima_boxcox <- forecast(arfima_boxcox, h = length(aqi_test_ts))
