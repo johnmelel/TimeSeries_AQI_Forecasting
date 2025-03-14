@@ -185,13 +185,17 @@ reverse_boxcox <- function(predicted, original, lambda) {
 
 ## ARIMA with No Transformation
 
+# ACF and PACF plots for ARIMA with No Transformation
+acf(residuals(arima_no_transform), main = "ARIMA(5,1,0) ACF")
+pacf(residuals(arima_no_transform), main = "ARIMA(5,1,0) PACF")
+
 # Fit ARIMA model
 arima_no_transform <- auto.arima(aqi_train_ts)
 
 # Residuals diagnostics
 checkresiduals(arima_no_transform)
 plot(fitted(arima_no_transform), residuals(arima_no_transform), 
-     main = "ARIMA(5,1,0) - Residuals vs. Fitted", 
+     main = "ARIMA(5,1,0) Residuals vs. Fit", 
      xlab = "Fitted Values", ylab = "Residuals", col = "blue", pch = 19)
 abline(h = 0, col = "red", lwd = 2)
 
@@ -199,11 +203,6 @@ abline(h = 0, col = "red", lwd = 2)
 print("Diagnostics for ARIMA(5,1,0)")
 print(adf.test(residuals(arima_no_transform)))
 print(kpss.test(residuals(arima_no_transform)))
-
-# ACF and PACF plots for ARIMA with No Transformation
-acf(residuals(arima_no_transform), main = "ARIMA(5,1,0) - ACF")
-pacf(residuals(arima_no_transform), main = "ARIMA(5,1,0) - PACF")
-
 
 # Forecast
 forecast_arima_no_transform <- forecast(arima_no_transform, h = length(aqi_test_ts))
@@ -213,7 +212,7 @@ rmse_arima_no_transform <- sqrt(mean((aqi_test_ts - forecast_arima_no_transform$
 print(paste("Test RMSE for ARIMA(5,1,0):", rmse_arima_no_transform))
 
 # Plot forecast with test data
-plot(forecast_arima_no_transform, main = "ARIMA(5,1,0) Forecast", xlim = c(2024, 2025))
+plot(forecast_arima_no_transform, main = "ARIMA(5,1,0) Forecast", xlim = c(2024.8, 2025.2))
 lines(aqi_test_ts, col = "red", lwd = 2)
 legend("topright", legend = c("Forecast", "Test"), col = c("black", "red"), lty = 1)
 
@@ -225,6 +224,9 @@ print(summary(arima_no_transform))
 
 ## SARIMA with No Transformation
 
+# ACF and PACF plots for SARIMA with No Transformation
+acf(residuals(sarima_no_transform), main = "SARIMA(5,1,0) ACF")
+pacf(residuals(sarima_no_transform), main = "SARIMA(5,1,0) PACF")
 
 # Fit SARIMA model
 sarima_no_transform <- auto.arima(aqi_train_ts, seasonal = TRUE)
@@ -232,7 +234,7 @@ sarima_no_transform <- auto.arima(aqi_train_ts, seasonal = TRUE)
 # Residuals diagnostics
 checkresiduals(sarima_no_transform)
 plot(fitted(sarima_no_transform), residuals(sarima_no_transform), 
-     main = "SARIMA(5,1,0) - Residuals vs. Fitted", 
+     main = "SARIMA(5,1,0) Residuals vs. Fit", 
      xlab = "Fitted Values", ylab = "Residuals", col = "blue", pch = 19)
 abline(h = 0, col = "red", lwd = 2)
 
@@ -240,10 +242,6 @@ abline(h = 0, col = "red", lwd = 2)
 print("Diagnostics for SARIMA(5,1,0)")
 print(adf.test(residuals(sarima_no_transform)))
 print(kpss.test(residuals(sarima_no_transform)))
-
-# ACF and PACF plots for SARIMA with No Transformation
-acf(residuals(sarima_no_transform), main = "SARIMA(5,1,0) - ACF")
-pacf(residuals(sarima_no_transform), main = "SARIMA(5,1,0) - PACF")
 
 # Forecast
 forecast_sarima_no_transform <- forecast(sarima_no_transform, h = length(aqi_test_ts))
@@ -253,7 +251,7 @@ rmse_sarima_no_transform <- sqrt(mean((aqi_test_ts - forecast_sarima_no_transfor
 print(paste("Test RMSE for SARIMA(5,1,0):", rmse_sarima_no_transform))
 
 # Plot forecast with test data
-plot(forecast_sarima_no_transform, main = "SARIMA(5,1,0) Forecast", xlim = c(2024, 2025))
+plot(forecast_sarima_no_transform, main = "SARIMA(5,1,0) Forecast", xlim = c(2024.8, 2025.2))
 lines(aqi_test_ts, col = "red", lwd = 2)
 legend("topright", legend = c("Forecast", "Test"), col = c("black", "red"), lty = 1)
 
@@ -261,10 +259,15 @@ legend("topright", legend = c("Forecast", "Test"), col = c("black", "red"), lty 
 print("SARIMA(5,1,0) Summary")
 print(summary(sarima_no_transform))
 
+forecast_sarima_no_transform$mean
+
 
 
 ## ARFIMA with No Transformation
 
+# ACF and PACF plots for ARFIMA with No Transformation
+acf(residuals(arfima_no_transform), main = "ARFIMA(0.749, 0.246, -0.253) ACF")
+pacf(residuals(arfima_no_transform), main = "ARFIMA(0.749, 0.246, -0.253) PACF")
 
 # Fit ARFIMA model
 arfima_no_transform <- arfima(aqi_train_ts)
@@ -272,7 +275,7 @@ arfima_no_transform <- arfima(aqi_train_ts)
 # Residuals diagnostics
 checkresiduals(arfima_no_transform)
 plot(fitted(arfima_no_transform), residuals(arfima_no_transform), 
-     main = "ARFIMA - Residuals vs. Fitted", 
+     main = "ARFIMA(0.749, 0.246, -0.253) Residuals vs. Fit", 
      xlab = "Fitted Values", ylab = "Residuals", col = "blue", pch = 19)
 abline(h = 0, col = "red", lwd = 2)
 
@@ -280,10 +283,6 @@ abline(h = 0, col = "red", lwd = 2)
 print("Diagnostics for ARFIMA")
 print(adf.test(residuals(arfima_no_transform)))
 print(kpss.test(residuals(arfima_no_transform)))
-
-# ACF and PACF plots for ARFIMA with No Transformation
-acf(residuals(arfima_no_transform), main = "ARFIMA - ACF")
-pacf(residuals(arfima_no_transform), main = "ARFIMA - PACF")
 
 # Forecast
 forecast_arfima_no_transform <- forecast(arfima_no_transform, h = length(aqi_test_ts))
@@ -293,7 +292,7 @@ rmse_arfima_no_transform <- sqrt(mean((aqi_test_ts - forecast_arfima_no_transfor
 print(paste("Test RMSE for ARFIMA:", rmse_arfima_no_transform))
 
 # Plot forecast with test data
-plot(forecast_arfima_no_transform, main = "ARFIMA Forecast", xlim = c(2024, 2025))
+plot(forecast_arfima_no_transform, main = "ARFIMA(0.749, 0.246, -0.253) Forecast", xlim = c(2024.8, 2025.2))
 lines(aqi_test_ts, col = "red", lwd = 2)
 legend("topright", legend = c("Forecast", "Test"), col = c("black", "red"), lty = 1)
 
@@ -303,7 +302,12 @@ print(summary(arfima_no_transform))
 
 
 
+
 ## ARIMA with Box-Cox Transformation
+
+# ACF and PACF plots for ARIMA with Box-Cox Transformation
+acf(residuals(arima_boxcox), main = "ARIMA(2,1,0) ACF (Box-Cox Transformation)")
+pacf(residuals(arima_boxcox), main = "ARIMA(2,1,0) PACF (Box-Cox Transformation)")
 
 # Fit ARIMA model
 arima_boxcox <- auto.arima(boxcox_train)
@@ -311,7 +315,7 @@ arima_boxcox <- auto.arima(boxcox_train)
 # Residuals diagnostics
 checkresiduals(arima_boxcox)
 plot(fitted(arima_boxcox), residuals(arima_boxcox), 
-     main = "ARIMA - Residuals vs. Fitted (Box-Cox Transformation)", 
+     main = "ARIMA(2,1,0) Residuals vs. Fit (Box-Cox Transformation)", 
      xlab = "Fitted Values", ylab = "Residuals", col = "blue", pch = 19)
 abline(h = 0, col = "red", lwd = 2)
 
@@ -319,10 +323,6 @@ abline(h = 0, col = "red", lwd = 2)
 print("Diagnostics for ARIMA with Box-Cox Transformation")
 print(adf.test(residuals(arima_boxcox)))
 print(kpss.test(residuals(arima_boxcox)))
-
-# ACF and PACF plots for ARIMA with Box-Cox Transformation
-acf(residuals(arima_boxcox), main = "ARIMA - ACF (Box-Cox Transformation)")
-pacf(residuals(arima_boxcox), main = "ARIMA - PACF (Box-Cox Transformation)")
 
 # Forecast
 forecast_arima_boxcox <- forecast(arima_boxcox, h = length(aqi_test_ts))
@@ -334,9 +334,13 @@ forecast_arima_boxcox_original <- reverse_boxcox(forecast_arima_boxcox$mean, aqi
 rmse_arima_boxcox <- sqrt(mean((aqi_test_ts - forecast_arima_boxcox_original)^2))
 print(paste("Test RMSE for ARIMA with Box-Cox Transformation:", rmse_arima_boxcox))
 
+#getting last 60 values from train
+train_last_60 <- tail(aqi_train_ts, 60)
+
 # Plot forecast with test data (on original scale)
-plot(forecast_arima_boxcox_original, main = "ARIMA Forecast (Box-Cox Transformation)", xlim = c(2024, 2025), type = "l", col = "black", ylab = "USAQI")
+plot(forecast_arima_boxcox_original, main = "ARIMA(2,1,0) Forecast (Box-Cox Transformation)", ylim = c(0, 150 ), xlim = c(2024.85,2025.18), ylab="")
 lines(aqi_test_ts, col = "red", lwd = 2)
+lines(train_last_60, col = "blue", lwd = 2)
 legend("topright", legend = c("Forecast", "Test"), col = c("black", "red"), lty = 1)
 
 # Model summary
@@ -346,13 +350,17 @@ print(summary(arima_boxcox))
 
 ## SARIMA with Box-Cox Transformation
 
+# ACF and PACF plots for SARIMA with Box-Cox Transformation
+acf(residuals(sarima_boxcox), main = "SARIMA(2,1,0) ACF (Box-Cox Transformation)")
+pacf(residuals(sarima_boxcox), main = "SARIMA(2,1,0) PACF (Box-Cox Transformation)")
+
 # Fit SARIMA model
 sarima_boxcox <- auto.arima(boxcox_train, seasonal = TRUE)
 
 # Residuals diagnostics
 checkresiduals(sarima_boxcox)
 plot(fitted(sarima_boxcox), residuals(sarima_boxcox), 
-     main = "SARIMA - Residuals vs. Fitted (Box-Cox Transformation)", 
+     main = "SARIMA(2,1,0) Residuals vs. Fit (Box-Cox Transformation)", 
      xlab = "Fitted Values", ylab = "Residuals", col = "blue", pch = 19)
 abline(h = 0, col = "red", lwd = 2)
 
@@ -360,11 +368,6 @@ abline(h = 0, col = "red", lwd = 2)
 print("Diagnostics for SARIMA with Box-Cox Transformation")
 print(adf.test(residuals(sarima_boxcox)))
 print(kpss.test(residuals(sarima_boxcox)))
-
-# ACF and PACF plots for SARIMA with Box-Cox Transformation
-acf(residuals(sarima_boxcox), main = "SARIMA - ACF (Box-Cox Transformation)")
-pacf(residuals(sarima_boxcox), main = "SARIMA - PACF (Box-Cox Transformation)")
-
 
 # Forecast
 forecast_sarima_boxcox <- forecast(sarima_boxcox, h = length(aqi_test_ts))
@@ -377,8 +380,9 @@ rmse_sarima_boxcox <- sqrt(mean((aqi_test_ts - forecast_sarima_boxcox_original)^
 print(paste("Test RMSE for SARIMA with Box-Cox Transformation:", rmse_sarima_boxcox))
 
 # Plot forecast with test data (on original scale)
-plot(forecast_sarima_boxcox_original, main = "SARIMA Forecast (Box-Cox Transformation)", xlim = c(2024, 2025), type = "l", col = "black")
+plot(forecast_sarima_boxcox_original, main = "SARIMA(2,1,0) Forecast (Box-Cox Transformation)", ylim = c(0, 150 ), xlim = c(2024.85,2025.18), ylab="")
 lines(aqi_test_ts, col = "red", lwd = 2)
+lines(train_last_60, col = "blue", lwd = 2)
 legend("topright", legend = c("Forecast", "Test"), col = c("black", "red"), lty = 1)
 
 # Model summary
@@ -386,7 +390,12 @@ print("SARIMA with Box-Cox Transformation Summary")
 print(summary(sarima_boxcox))
 
 
+
 ## ARFIMA with Box-Cox Transformation
+
+# ACF and PACF plots for ARFIMA with Box-Cox Transformation
+acf(residuals(arfima_boxcox), main = "ARFIMA(0.69, 0.18, -0.20) ACF (Box-Cox Transformation)")
+pacf(residuals(arfima_boxcox), main = "ARFIMA(0.69, 0.18, -0.20) PACF (Box-Cox Transformation)")
 
 # Fit ARFIMA model
 arfima_boxcox <- arfima(boxcox_train)
@@ -394,7 +403,7 @@ arfima_boxcox <- arfima(boxcox_train)
 # Residuals diagnostics
 checkresiduals(arfima_boxcox)
 plot(fitted(arfima_boxcox), residuals(arfima_boxcox), 
-     main = "ARFIMA - Residuals vs. Fitted (Box-Cox Transformation)", 
+     main = "ARFIMA(0.69, 0.18, -0.20) Residuals vs. Fit (Box-Cox Transformation)", 
      xlab = "Fitted Values", ylab = "Residuals", col = "blue", pch = 19)
 abline(h = 0, col = "red", lwd = 2)
 
@@ -402,11 +411,6 @@ abline(h = 0, col = "red", lwd = 2)
 print("Diagnostics for ARFIMA with Box-Cox Transformation")
 print(adf.test(residuals(arfima_boxcox)))
 print(kpss.test(residuals(arfima_boxcox)))
-
-# ACF and PACF plots for ARFIMA with Box-Cox Transformation
-par(mfrow = c(1, 2))
-acf(residuals(arfima_boxcox), main = "ARFIMA - ACF (Box-Cox Transformation)")
-pacf(residuals(arfima_boxcox), main = "ARFIMA - PACF (Box-Cox Transformation)")
 
 # Forecast
 forecast_arfima_boxcox <- forecast(arfima_boxcox, h = length(aqi_test_ts))
@@ -419,15 +423,17 @@ rmse_arfima_boxcox <- sqrt(mean((aqi_test_ts - forecast_arfima_boxcox_original)^
 print(paste("Test RMSE for ARFIMA with Box-Cox Transformation:", rmse_arfima_boxcox))
 
 # Plot forecast with test data (on original scale)
-plot(forecast_arfima_boxcox_original, main = "ARFIMA Forecast (Box-Cox Transformation)", xlim = c(2024, 2025), type = "l", col = "black")
+plot(forecast_arfima_boxcox_original, main = "ARFIMA(0.69, 0.18, -0.20) Forecast (Box-Cox Transformation)", ylim = c(0, 150 ), xlim = c(2024.85,2025.18), ylab="")
 lines(aqi_test_ts, col = "red", lwd = 2)
+lines(train_last_60, col = "blue", lwd = 2)
 legend("topright", legend = c("Forecast", "Test"), col = c("black", "red"), lty = 1)
 
 # Model summary
 print("ARFIMA with Box-Cox Transformation Summary")
 print(summary(arfima_boxcox))
 
-# ARIMA with the box-cox transformation is the best model since it had the lowest RMSE
+
+# SARIMA with the box-cox transformation is the best model since it had the lowest RMSE
 
 
 
