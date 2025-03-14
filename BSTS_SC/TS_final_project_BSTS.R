@@ -235,8 +235,8 @@ acf(residuals_bsts_diff_ar[1:5000])
 
 
 # forecast the next 59 days (Jan 2025 - Feb 2025)
-burn_diff_ar <- SuggestBurn(0.1, model_diff_ar)
-pred_diff_ar <- predict(model_diff_ar, burn = burn_diff_ar, horizon = 59)
+burn_diff_ar <- SuggestBurn(0.034, model_diff_ar)
+pred_diff_ar <- predict(model_diff_ar, horizon = 59, burn = burn_diff_ar)
 
 
 # Accuracy metrics 
@@ -427,6 +427,8 @@ burn_season_ar <- SuggestBurn(0.1, model_season_ar)
 pred_season_ar <- predict(model_season_ar, burn = burn_season_ar, horizon = 59)
 
 
+
+
 # Accuracy metrics 
 
 actual_values <- test_data$USAQI
@@ -446,3 +448,15 @@ cat("MAPE for Seasonal Differencing w/ AR(5):", mape, "%\n")
 #####
 
 
+par(xaxt = "n") 
+plot(pred_season_ar, plot.original = 60)
+par(xaxt = "s")
+
+
+# Define the correct date sequence
+start_date <- as.Date("2024-11-01")
+index_values <- 3960:4080
+date_labels <- start_date + (index_values - 3960)
+axis(1, at = seq(min(index_values), max(index_values), by = 14),
+     labels = format(seq(start_date, start_date + (4080 - 3960), by = 14), "%d %b %Y"),
+     las = 1)

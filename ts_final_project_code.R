@@ -685,8 +685,8 @@ acf(residuals_bsts_diff_ar[1:5000])
 
 
 # Forecast the next 59 days (Jan 2025 - Feb 2025)
-burn_diff_ar <- SuggestBurn(0.1, model_diff_ar)
-pred_diff_ar <- predict(model_diff_ar, burn = burn_diff_ar, horizon = 59)
+burn_diff_ar <- SuggestBurn(0.034, model_diff_ar)
+pred_diff_ar <- predict(model_diff_ar, horizon = 59, burn = burn_diff_ar)
 
 
 # Accuracy metrics
