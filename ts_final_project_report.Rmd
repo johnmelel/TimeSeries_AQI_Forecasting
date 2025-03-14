@@ -116,21 +116,21 @@ The models were constructed using three different data transformations: first-or
 These models assume stationarity, independence of residuals, and a normally distributed error structure. To assess the model assumptions, ACF plots and Residuals vs. Fitted plots were examined:
 
 ```{r}
-knitr::include_graphics("ARIMA_HJ/arima/sarima/arfima_acf.png")
+knitr::include_graphics("ARIMA_HJ/arima_arfima_sarima_acf.png")
 ```
 
 ```{r}
-knitr::include_graphics("ARIMA_HJ/arima/sarima/arfima_acf.png")
+knitr::include_graphics("ARIMA_HJ/arima_arfima_sarima_bc_acf.png")
 ```
 
 The ACF plots for the ARFIMA model indicate  residual autocorrelation. However, the SARIMA model, in particular, exhibits significant autocorrelation, especially in seasonal components. This suggests that the SARIMA model has unaccounted-for structure in its residuals. Due to this, the residual assumptions of the model are violated.
 
 ```{r}
-knitr::include_graphics("ARIMA_HJ/arima/arfima/sarima_residuals.png")
+knitr::include_graphics("ARIMA_HJ/arima_arfima_sarima_residuals.png")
 ```
 
 ```{r}
-knitr::include_graphics("ARIMA_HJ/.png")
+knitr::include_graphics("ARIMA_HJ/arima_arfima_sarima_bc_res.png")
 ```
 
 The Residuals vs. Fitted plots reveal that errors are not randomly distributed without any significant pattern. We see clear signs of heteroscedasticity, suggesting that these models do not adequately capture the variance structure in the data. Thus, model assumptions regarding homoscedasticity are violated.
